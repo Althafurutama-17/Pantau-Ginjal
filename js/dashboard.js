@@ -33,7 +33,7 @@ function formatDateIndonesia(isoString) {
 const HEALTH_TIPS = [
     {
         id: 'pengertian',
-        icon: '📖',
+        icon: '<i class="fa-solid fa-book-medical"></i>',
         title: 'Apa itu Penyakit Ginjal?',
         content: `
             <p>Penyakit ginjal adalah kondisi ketika ginjal tidak dapat berfungsi dengan baik dalam menyaring limbah dan kelebihan cairan dari darah. Jika tidak ditangani, dapat menyebabkan penumpukan racun dalam tubuh yang berbahaya bagi kesehatan.</p>
@@ -45,7 +45,7 @@ const HEALTH_TIPS = [
     },
     {
         id: 'fungsi',
-        icon: '⚙️',
+        icon: '<i class="fa-solid fa-gears"></i>',
         title: 'Mengapa Ginjal Penting?',
         content: `
             <div class="sub-heading">✅ Fungsi Ginjal</div>
@@ -71,7 +71,7 @@ const HEALTH_TIPS = [
     },
     {
         id: 'gejala',
-        icon: '🔍',
+        icon: '<i class="fa-solid fa-magnifying-glass"></i>',
         title: 'Gejala & Indikasi Awal',
         content: `
             <p>Gejala awal penyakit ginjal sering tidak disadari karena mirip dengan penyakit ringan biasa. Waspadai tanda-tanda berikut:</p>
@@ -94,7 +94,7 @@ const HEALTH_TIPS = [
     },
     {
         id: 'pencegahan',
-        icon: '🛡️',
+        icon: '<i class="fa-solid fa-shield-heart"></i>',
         title: 'Pencegahan & Penanganan',
         content: `
             <div class="sub-heading">✅ 10 Cara Menjaga Kesehatan Ginjal</div>
@@ -152,7 +152,7 @@ const DashboardManager = {
             // Belum pernah skrining
             container.innerHTML = `
                 <div class="health-status">
-                    <div class="health-status-icon">🩺</div>
+                    <div class="health-status-icon"><i class="fa-solid fa-stethoscope"></i></div>
                     <span class="health-badge status-belum" role="status">❌ Belum Pernah Skrining</span>
                     <p class="health-empty-text">Anda belum pernah melakukan skrining kesehatan ginjal. Yuk, mulai deteksi dini sekarang!</p>
                     <div class="health-actions">

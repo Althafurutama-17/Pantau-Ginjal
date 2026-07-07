@@ -7,13 +7,14 @@
     <!-- CSS external: tampilan & gaya aplikasi -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
 <div class="app-container" role="application" aria-label="Aplikasi Skrining Kesehatan Ginjal">
     <!-- ===== HEADER ===== -->
     <header>
-        <span class="logo-icon" aria-hidden="true">🫘</span>
+        <span class="logo-icon" aria-hidden="true"><i class="fa-solid fa-stethoscope"></i></span>
         <h1>Skrining Kesehatan Ginjal</h1>
         <p>Deteksi Dini untuk Hidup yang Lebih Sehat</p>
     </header>
@@ -33,16 +34,16 @@
 
     <!-- ===== DASHBOARD NAVIGASI ===== -->
     <nav class="dashboard-nav" id="dashboardNav" aria-label="Navigasi dashboard">
-        <button class="nav-tab active" data-page="dashboard" type="button">🏠 Dashboard</button>
-        <button class="nav-tab" data-page="riwayat" type="button">📋 Riwayat</button>
-        <button class="nav-tab" data-page="profil" type="button">👤 Profil</button>
+        <button class="nav-tab active" data-page="dashboard" type="button"><i class="fa-solid fa-house"></i> Dashboard</button>
+        <button class="nav-tab" data-page="riwayat" type="button"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat</button>
+        <button class="nav-tab" data-page="profil" type="button"><i class="fa-solid fa-user"></i> Profil</button>
     </nav>
 
     <!-- ===== KONTEN UTAMA ===== -->
     <main id="mainContent">
         <!-- ===== HALAMAN BERANDA ===== -->
         <section id="page-home" class="page active" aria-label="Beranda">
-            <div class="hero-icon" aria-hidden="true">🏥</div>
+            <div class="hero-icon" aria-hidden="true"><i class="fa-solid fa-hospital"></i></div>
             <h2>Selamat Datang</h2>
             <p class="description">
                 Aplikasi ini membantu Anda mengetahui kondisi kesehatan ginjal secara mandiri
@@ -66,7 +67,7 @@
             <div class="dashboard-section">
                 <div class="dashboard-card">
                     <div class="dashboard-card-header">
-                        <span class="card-icon" aria-hidden="true">🩺</span>
+                        <span class="card-icon" aria-hidden="true"><i class="fa-solid fa-stethoscope"></i></span>
                         <span>Status Kesehatan Ginjal</span>
                     </div>
                     <div class="dashboard-card-body" id="dashboard-health-status">
@@ -79,7 +80,7 @@
             <div class="dashboard-section">
                 <div class="dashboard-card">
                     <div class="dashboard-card-header">
-                        <span class="card-icon" aria-hidden="true">📝</span>
+                        <span class="card-icon" aria-hidden="true"><i class="fa-solid fa-clipboard-list"></i></span>
                         <span>Kuesioner Skrining</span>
                     </div>
                     <div class="dashboard-card-body" id="dashboard-questionnaire-access">
@@ -92,7 +93,7 @@
             <div class="dashboard-section">
                 <div class="dashboard-card">
                     <div class="dashboard-card-header">
-                        <span class="card-icon" aria-hidden="true">💡</span>
+                        <span class="card-icon" aria-hidden="true"><i class="fa-solid fa-lightbulb"></i></span>
                         <span>Tips &amp; Kiat Kesehatan Ginjal</span>
                     </div>
                     <div class="dashboard-card-body">
@@ -126,7 +127,7 @@
 <!-- ===== MODAL KONFIRMASI ===== -->
 <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-content">
-        <h2 id="modalTitle">📋 Ringkasan Jawaban Anda</h2>
+        <h2 id="modalTitle"><i class="fa-solid fa-list-check"></i> Ringkasan Jawaban Anda</h2>
         <p style="font-size:0.9rem; color:#4a5568; text-align:center; margin-bottom:8px;">
             Silakan periksa kembali jawaban di bawah ini sebelum melihat hasil.
         </p>

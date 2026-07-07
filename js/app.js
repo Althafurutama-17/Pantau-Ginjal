@@ -217,7 +217,7 @@ function renderNavButtons() {
         const hasAnswer = state.answers[state.currentQuestion] !== null;
 
         navFooter.innerHTML = `
-            <button class="btn btn-secondary" id="btnBackHome" type="button">🏠 Beranda</button>
+            <button class="btn btn-secondary" id="btnBackHome" type="button"><i class="fa-solid fa-house"></i> Beranda</button>
             <div class="nav-divider"></div>
             ${isFirst ? '' : '<button class="btn btn-secondary" id="btnPrev" type="button">← Kembali</button>'}
             <button class="btn btn-primary" id="btnNext" type="button" ${!hasAnswer ? 'disabled' : ''}>
@@ -392,21 +392,21 @@ function tentukanStatus(skor) {
         return {
             key: 'sehat',
             label: 'Sehat / Normal',
-            icon: '✅',
+            icon: '<i class="fa-solid fa-circle-check"></i>',
             color: 'sehat'
         };
     } else if (skor <= 12) {
         return {
             key: 'waspada',
             label: 'Waspada / Risiko Ringan',
-            icon: '⚠️',
+            icon: '<i class="fa-solid fa-triangle-exclamation"></i>',
             color: 'waspada'
         };
     } else {
         return {
             key: 'konsultasi',
             label: 'Konsultasi / Risiko Tinggi',
-            icon: '🔴',
+            icon: '<i class="fa-solid fa-circle-exclamation"></i>',
             color: 'konsultasi'
         };
     }

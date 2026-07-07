@@ -13,6 +13,10 @@
     -webkit-overflow-scrolling: touch;
 }
 
+.nav-tab i {
+    font-size: 1rem;
+}
+
 .nav-tab {
     display: inline-flex;
     align-items: center;
@@ -78,6 +82,7 @@
 
 .dashboard-card-header .card-icon {
     font-size: 1.6rem;
+    color: #0a5c8a;
 }
 
 .dashboard-card-body {
@@ -93,6 +98,7 @@
 .health-status-icon {
     font-size: 3.2rem;
     margin-bottom: 8px;
+    color: #0a5c8a;
 }
 
 .health-badge {
@@ -257,6 +263,9 @@
 .accordion-icon {
     font-size: 1.4rem;
     flex-shrink: 0;
+    width: 28px;
+    text-align: center;
+    color: #0a5c8a;
 }
 
 .accordion-title {

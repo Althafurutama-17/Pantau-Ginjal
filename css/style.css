@@ -203,6 +203,11 @@ header .logo-icon {
     font-size: 2.4rem;
     display: block;
     margin-bottom: 6px;
+    color: #ffffff;
+}
+
+header .logo-icon i {
+    font-size: 2.4rem;
 }
 
 header h1 {
@@ -290,6 +295,7 @@ main {
 #page-home .hero-icon {
     font-size: 4rem;
     margin-bottom: 12px;
+    color: #0a5c8a;
 }
 
 #page-home h2 {
