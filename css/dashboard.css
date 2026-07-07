@@ -485,3 +485,179 @@
         background-color: transparent;
     }
 }
+
+/* ===== HALAMAN LOGIN ===== */
+#page-login {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+#page-login.active {
+    display: block;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+    padding: 20px 0;
+}
+
+.login-card {
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+.login-icon {
+    font-size: 3.6rem;
+    color: #1a7fc4;
+    margin-bottom: 12px;
+}
+
+.login-card h2 {
+    font-size: 1.4rem;
+    color: #0a5c8a;
+    margin-bottom: 6px;
+}
+
+.login-subtitle {
+    font-size: 0.9rem;
+    color: #718096;
+    margin-bottom: 20px;
+}
+
+.login-divider {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #1a7fc4, #2a9df4);
+    border-radius: 3px;
+    margin: 0 auto 24px;
+}
+
+.login-welcome {
+    font-size: 1rem;
+    color: #2d3748;
+    margin-bottom: 20px;
+}
+
+.login-card #btnLogin {
+    min-width: 200px;
+    font-size: 1.1rem;
+    padding: 14px 48px;
+}
+
+.login-hint {
+    font-size: 0.85rem;
+    color: #a0aec0;
+    margin-top: 16px;
+}
+
+/* ===== HALAMAN PROFIL ===== */
+#page-profile {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+#page-profile.active {
+    display: block;
+}
+
+.profile-info {
+    text-align: center;
+    padding: 16px 0;
+}
+
+.profile-avatar {
+    font-size: 4rem;
+    color: #1a7fc4;
+    margin-bottom: 12px;
+    width: 80px;
+    height: 80px;
+    background: #e8f4fd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.profile-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+}
+
+.profile-role {
+    font-size: 0.9rem;
+    color: #718096;
+    margin-bottom: 20px;
+}
+
+.profile-details {
+    background-color: #f7fafc;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.profile-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e8f0f6;
+    font-size: 0.95rem;
+}
+
+.profile-detail-item:last-child {
+    border-bottom: none;
+}
+
+.profile-detail-item .label {
+    color: #718096;
+    font-weight: 500;
+}
+
+.profile-detail-item .value {
+    color: #1a1a2e;
+    font-weight: 600;
+}
+
+.profile-logout-section {
+    border-top: 1px solid #e8f0f6;
+    padding-top: 20px;
+    margin-top: 8px;
+}
+
+.profile-logout-section .btn-danger {
+    min-width: 200px;
+}
+
+/* Responsive login & profile */
+@media (max-width: 600px) {
+    .login-icon {
+        font-size: 3rem;
+    }
+    .login-card h2 {
+        font-size: 1.2rem;
+    }
+    .login-card #btnLogin {
+        width: 100%;
+        min-width: unset;
+    }
+    .profile-avatar {
+        width: 64px;
+        height: 64px;
+        font-size: 3rem;
+    }
+    .profile-detail-item {
+        font-size: 0.9rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}

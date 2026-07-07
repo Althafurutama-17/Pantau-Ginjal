@@ -139,14 +139,18 @@ const TIPS = {
 };
 
 // ===== STATE APLIKASI =====
+let isLoggedIn = false;  // Status login (false = belum login)
+
 const state = {
-    currentPage: 'home',        // 'home' | 'dashboard' | 'questionnaire' | 'result'
-    currentQuestion: 0,         // indeks pertanyaan saat ini (0-9)
+    currentPage: 'login',   // 'login' | 'dashboard' | 'questionnaire' | 'result' | 'profile'
+    currentQuestion: 0,     // indeks pertanyaan saat ini (0-9)
     answers: new Array(10).fill(null)  // menyimpan nilai jawaban tiap pertanyaan
 };
 
 // ===== REFERENSI DOM =====
 const $ = (id) => document.getElementById(id);
+const loginPage      = $('page-login');
+const profilePage    = $('page-profile');
 const homePage       = $('page-home');
 const dashboardPage  = $('page-dashboard');
 const questionnairePage = $('page-questionnaire');
@@ -167,22 +171,34 @@ const btnModalConfirm = $('btnModalConfirm');
 // ===== FUNGSI NAVIGASI HALAMAN =====
 function showPage(pageName) {
     // Sembunyikan semua halaman
+    loginPage.classList.remove('active');
     homePage.classList.remove('active');
     dashboardPage.classList.remove('active');
+    profilePage.classList.remove('active');
     questionnairePage.classList.remove('active');
     resultPage.classList.remove('active');
 
     // Atur visibilitas navigasi dashboard
-    if (pageName === 'home') {
-        homePage.classList.add('active');
+    if (pageName === 'login') {
+        loginPage.classList.add('active');
         progressSection.classList.remove('visible');
         dashboardNav.style.display = 'none';
     } else if (pageName === 'dashboard') {
         dashboardPage.classList.add('active');
         progressSection.classList.remove('visible');
         dashboardNav.style.display = 'flex';
+        // Aktifkan tab Dashboard
+        DashboardManager.activateDashboardTab();
         // Inisialisasi dashboard
         DashboardManager.init();
+    } else if (pageName === 'profile') {
+        profilePage.classList.add('active');
+        progressSection.classList.remove('visible');
+        dashboardNav.style.display = 'flex';
+        // Aktifkan tab Profil
+        DashboardManager.activateProfileTab();
+        // Render profil
+        DashboardManager.renderProfile();
     } else if (pageName === 'questionnaire') {
         questionnairePage.classList.add('active');
         progressSection.classList.add('visible');
@@ -201,13 +217,8 @@ function showPage(pageName) {
 function renderNavButtons() {
     const page = state.currentPage;
 
-    if (page === 'home') {
-        navFooter.innerHTML = `
-            <button class="btn btn-primary" id="btnStart" type="button">
-                Mulai Kuesioner →
-            </button>
-        `;
-        $('btnStart').addEventListener('click', startQuestionnaire);
+    if (page === 'login' || page === 'profile') {
+        navFooter.innerHTML = '';
     } else if (page === 'dashboard') {
         // Dashboard tidak perlu tombol footer — navigasi via tab
         navFooter.innerHTML = '';
@@ -543,7 +554,7 @@ function showResultFromData(screening) {
     showPage('result');
 }
 
-// ===== KEMBALI KE BERANDA ATAU DASHBOARD =====
+// ===== KEMBALI KE DASHBOARD =====
 function restartApp() {
     // Reset state
     state.currentQuestion = 0;
@@ -558,13 +569,8 @@ function restartApp() {
     // Reset konten hasil
     resultPage.innerHTML = '';
 
-    // Jika sudah pernah skrining, langsung ke dashboard
-    var hasData = getScreeningCount() > 0;
-    if (hasData) {
-        showPage('dashboard');
-    } else {
-        showPage('home');
-    }
+    // Kembali ke dashboard
+    showPage('dashboard');
 
     // Fokus
     setTimeout(() => {
@@ -572,15 +578,48 @@ function restartApp() {
     }, 200);
 }
 
+// ===== FUNGSI LOGIN =====
+function login() {
+    isLoggedIn = true;
+    showPage('dashboard');
+}
+
+// ===== FUNGSI LOGOUT =====
+function logout() {
+    // Tampilkan konfirmasi
+    var confirmed = confirm('Apakah Anda yakin ingin keluar? Semua data skrining akan dihapus.');
+    if (!confirmed) return;
+
+    // Hapus semua data
+    clearAllData();
+    clearPartialQuestionnaire();
+
+    // Reset state
+    isLoggedIn = false;
+    state.currentQuestion = 0;
+    state.answers = new Array(10).fill(null);
+    progressFill.style.width = '0%';
+    progressText.textContent = 'Pertanyaan 1 dari 10';
+    progressPercent.textContent = '0%';
+    progressBarEl.setAttribute('aria-valuenow', 0);
+    resultPage.innerHTML = '';
+
+    // Kembali ke halaman login
+    showPage('login');
+}
+
+// Expose fungsi ke global
+window.login = login;
+window.logout = logout;
+
 // ===== INISIALISASI APLIKASI =====
 document.addEventListener('DOMContentLoaded', function () {
-    // Cek apakah sudah ada data skrining tersimpan
-    var latestScreening = getLatestScreening();
+    // Tampilkan halaman login dulu
+    showPage('login');
 
-    if (latestScreening) {
-        // Jika sudah pernah skrining, tampilkan dashboard
-        showPage('dashboard');
-    } else {
-        showPage('home');
+    // Event listener tombol login
+    var btnLogin = document.getElementById('btnLogin');
+    if (btnLogin) {
+        btnLogin.addEventListener('click', login);
     }
 });

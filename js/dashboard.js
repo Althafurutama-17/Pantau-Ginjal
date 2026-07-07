@@ -349,13 +349,14 @@ const DashboardManager = {
 
                 // Navigasi
                 if (page === 'dashboard') {
-                    // Already on dashboard
+                    showPage('dashboard');
                 } else if (page === 'riwayat') {
                     // Riwayat - placeholder
                     alert('Fitur Riwayat sedang dalam pengembangan. Nantikan update selanjutnya!');
+                    // Kembalikan tab ke dashboard
+                    DashboardManager.activateDashboardTab();
                 } else if (page === 'profil') {
-                    // Profil - placeholder
-                    alert('Fitur Profil sedang dalam pengembangan. Nantikan update selanjutnya!');
+                    showPage('profile');
                 }
             });
         });
@@ -372,5 +373,75 @@ const DashboardManager = {
                 t.classList.add('active');
             }
         });
+    },
+
+    /**
+     * Update tab aktif saat halaman profil ditampilkan.
+     */
+    activateProfileTab: function () {
+        var tabs = document.querySelectorAll('.nav-tab');
+        tabs.forEach(function (t) {
+            t.classList.remove('active');
+            if (t.dataset.page === 'profil') {
+                t.classList.add('active');
+            }
+        });
+    },
+
+    /**
+     * Merender halaman profil pengguna.
+     */
+    renderProfile: function () {
+        var container = document.getElementById('profile-content');
+        if (!container) return;
+
+        var screeningCount = getScreeningCount();
+        var latest = getLatestScreening();
+
+        container.innerHTML = `
+            <div class="profile-info">
+                <div class="profile-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="profile-name">User1</div>
+                <div class="profile-role"><i class="fa-solid fa-user-check"></i> Pengguna Terdaftar</div>
+
+                <div class="profile-details">
+                    <div class="profile-detail-item">
+                        <span class="label">Username</span>
+                        <span class="value">user1</span>
+                    </div>
+                    <div class="profile-detail-item">
+                        <span class="label">Role</span>
+                        <span class="value">Masyarakat Umum</span>
+                    </div>
+                    <div class="profile-detail-item">
+                        <span class="label">Total Skrining</span>
+                        <span class="value">${screeningCount} kali</span>
+                    </div>
+                    <div class="profile-detail-item">
+                        <span class="label">Skrining Terakhir</span>
+                        <span class="value">${latest ? formatDateIndonesia(latest.screeningDate) : '-'}</span>
+                    </div>
+                </div>
+
+                <div class="profile-logout-section">
+                    <button class="btn btn-danger" id="btnLogout" type="button">
+                        <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                    </button>
+                    <p style="font-size:0.8rem;color:#a0aec0;margin-top:10px;">
+                        Semua data skrining akan dihapus saat logout.
+                    </p>
+                </div>
+            </div>
+        `;
+
+        // Event listener logout
+        var btnLogout = document.getElementById('btnLogout');
+        if (btnLogout) {
+            btnLogout.addEventListener('click', function () {
+                window.logout && window.logout();
+            });
+        }
     }
 };

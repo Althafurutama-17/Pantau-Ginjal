@@ -1,10 +1,11 @@
 # 📋 Dokumentasi Aplikasi: Skrining Kesehatan Ginjal
 
-> **Versi:** 2.0.0  
+> **Versi:** 2.1.0  
 > **Tipe:** Single Page Application (SPA) — Client-side Only  
 > **Target Pengguna:** Masyarakat luas, khususnya lansia (≥60 tahun)  
 > **Bahasa:** Indonesia  
-> **File Utama:** `index.html` + `css/style.css` + `css/dashboard.css` + `js/app.js` + `js/storage.js` + `js/dashboard.js`
+> **File Utama:** `index.html` + `css/style.css` + `css/dashboard.css` + `js/app.js` + `js/storage.js` + `js/dashboard.js`  
+> **Ikon:** Font Awesome 6.5.1 + Material Icons (Google Fonts)
 
 ---
 
@@ -13,7 +14,7 @@
 ```
 EPIDEMIC UI/
 │
-├── index.html          # ★ Struktur halaman (HTML saja, tanpa inline CSS/JS)
+├── index.html          # ★ Struktur halaman (HTML + CDN Font Awesome & Material Icons)
 ├── css/
 │   ├── style.css       # ★ Gaya tampilan global (kuesioner, hasil, modal)
 │   └── dashboard.css   # ★ Gaya tampilan dashboard & accordion (v2.0)
@@ -50,6 +51,10 @@ EPIDEMIC UI/
 | 16 | **Tips edukasi expandable (accordion)** | ✅ **v2.0** |
 | 17 | **Konten edukasi 4 kategori kesehatan ginjal** | ✅ **v2.0** |
 | 18 | **Partial save kuesioner** | ✅ **v2.0** |
+| 19 | **Halaman Login sederhana** | ✅ **v2.1** |
+| 20 | **Logout dengan konfirmasi + hapus data** | ✅ **v2.1** |
+| 21 | **Halaman Profil Pengguna** | ✅ **v2.1** |
+| 22 | **Font Awesome 6.5.1 + Material Icons** | ✅ **v2.1** |
 
 ---
 
@@ -58,36 +63,48 @@ EPIDEMIC UI/
 ### State Management (JavaScript)
 
 ```javascript
+let isLoggedIn = false;  // Status login
+
 const state = {
-    currentPage: 'home',        // 'home' | 'dashboard' | 'questionnaire' | 'result'
-    currentQuestion: 0,         // index pertanyaan (0-9)
+    currentPage: 'login',   // 'login' | 'dashboard' | 'questionnaire' | 'result' | 'profile'
+    currentQuestion: 0,     // index pertanyaan (0-9)
     answers: [null, null, ...]  // array 10 nilai jawaban (0-3)
 };
 ```
 
-### Alur Navigasi (v2.0)
+### Alur Navigasi (v2.1)
 
 ```
-[Beranda] ◀── (pengguna baru) ──▶ [Dashboard] ◀── (pengguna lama) ──▶ [Tab: Riwayat/Profil]
-    │                                      │
-    │ "Mulai Kuesioner"                    │ "Mulai / Isi Ulang / Lanjutkan"
-    ▼                                      ▼
-[Kuesioner Q1..Q10] ◀── "Kembali" ──▶ [Kuesioner Q1..Q10]
-    │                                      │
-    └──"Selanjutnya"──▶ (setelah Q10)  ◀───┘
-                               │
-                               ▼
-                       [Modal Konfirmasi]
-                        /              \
-                  "Kembali"      "Ya, Tampilkan Hasil"
-                       │              │
-                       ▼              ▼
-                  [Kuesioner]    [Halaman Hasil]
-                                      │
-                              "Kembali ke Dashboard"
-                                      │
-                                      ▼
-                                 [Dashboard]
+[Login] ──"Log In"──▶ [Dashboard] ◀── "Kembali ke Dashboard"
+   ▲                       │
+   │                       │ "Mulai / Isi Ulang / Lanjutkan"
+   │                       ▼
+   │               [Kuesioner Q1..Q10]
+   │                       │
+   │               (setelah Q10)
+   │                       │
+   │                       ▼
+   │               [Modal Konfirmasi]
+   │                /              \
+   │          "Kembali"      "Ya, Tampilkan Hasil"
+   │               │              │
+   │               ▼              ▼
+   │          [Kuesioner]    [Halaman Hasil]
+   │                              │
+   │                      "Kembali ke Dashboard"
+   │                              │
+   │                              ▼
+   │                         [Dashboard]
+   │                    ┌──────┼──────┐
+   │                    │      │      │
+   │               [Tab:   [Tab:   [Tab:
+   │              Dashboard] Riwayat] Profil]
+   │                              │
+   │                              ▼
+   │                         [Profil]
+   │                     [Tombol Log Out]
+   │                     "Yakin? Hapus data?"
+   └──────────────────── (data dihapus) ───┘
 ```
 
 ### File-File Baru (v2.0)
@@ -102,8 +119,10 @@ const state = {
 
 | Fungsi | File | Tugas |
 |--------|------|-------|
-| `showPage(pageName)` | app.js | Pindah halaman (home/dashboard/questionnaire/result) |
+| `showPage(pageName)` | app.js | Pindah halaman (login/dashboard/profile/questionnaire/result) |
 | `renderNavButtons()` | app.js | Render tombol navigasi sesuai halaman aktif |
+| `login()` | app.js | Login sebagai User1 → dashboard |
+| `logout()` | app.js | Konfirmasi → hapus semua data → balik ke login |
 | `startQuestionnaire()` | app.js | Mulai kuesioner baru (reset + clear partial) |
 | `resumeQuestionnaire()` | app.js | Lanjutkan kuesioner dari partial save |
 | `showLastResult()` | app.js | Tampilkan hasil skrining terakhir dari localStorage |
@@ -114,11 +133,14 @@ const state = {
 | `hitungSkor()` | app.js | Jumlahkan semua nilai jawaban |
 | `tentukanStatus(skor)` | app.js | Tentukan kategori berdasarkan skor |
 | `showResult()` | app.js | Hitung skor + save ke localStorage + tampilkan hasil |
-| `restartApp()` | app.js | Reset state + kembali ke dashboard/beranda |
+| `restartApp()` | app.js | Reset state + kembali ke dashboard |
 | `saveScreeningResult()` | storage.js | Simpan hasil skrining ke localStorage |
 | `getLatestScreening()` | storage.js | Ambil hasil skrining terakhir |
 | `savePartialQuestionnaire()` | storage.js | Simpan progress kuesioner parsial |
+| `clearAllData()` | storage.js | Hapus semua data (dipanggil saat logout) |
 | `DashboardManager.init()` | dashboard.js | Inisialisasi dashboard (render semua kartu) |
+| `DashboardManager.renderProfile()` | dashboard.js | Render halaman profil & tombol logout |
+| `formatDateIndonesia()` | dashboard.js | Format tanggal ke format Indonesia |
 
 ---
 
@@ -306,11 +328,20 @@ Skor Total = jumlah dari seluruh nilai jawaban (0-3 per pertanyaan)
 3. Double klik `index.html`
 4. Atau drag & drop file ke browser
 
+### Alur Penggunaan
+1. **Login** → Klik "Log In" (masuk sebagai User1)
+2. **Dashboard** → Lihat status, mulai kuesioner, baca tips
+3. **Kuesioner** → Jawab 10 pertanyaan
+4. **Hasil** → Lihat skor & tips kesehatan
+5. **Dashboard** → Status terbaru tampil
+6. **Profil** → Lihat data user, klik "Log Out" jika ingin keluar
+
 ### Catatan
-- Tidak perlu koneksi internet
-- Tidak perlu install apa-apa
+- ✅ Membutuhkan **koneksi internet** (untuk load Font Awesome & Material Icons dari CDN)
+- ✅ Tidak perlu server — langsung buka file
 - ✅ Data skrining tersimpan di **localStorage** — tidak hilang saat refresh atau ditutup
-- Untuk menghapus data: buka DevTools → Application → Local Storage → hapus key `ginjal_screenings`
+- ✅ Logout otomatis menghapus semua data
+- Untuk menghapus data manual: buka DevTools → Application → Local Storage → hapus key `ginjal_screenings`
 - Atau panggil `clearAllData()` di console browser
 
 ---
@@ -326,13 +357,19 @@ Skor Total = jumlah dari seluruh nilai jawaban (0-3 per pertanyaan)
 - [x] Tips edukasi expandable (accordion) ✅ (v2.0)
 - [x] Partial save kuesioner ✅ (v2.0)
 
-### Jangka Pendek (v2.1)
+### ✅ Sudah Tercapai (v2.1)
+- [x] Font Awesome 6.5.1 + Material Icons ✅ (v2.1)
+- [x] Halaman Login sederhana ✅ (v2.1)
+- [x] Halaman Profil dengan data user ✅ (v2.1)
+- [x] Logout dengan konfirmasi + hapus semua data ✅ (v2.1)
+
+### Jangka Pendek (v2.2)
 - [ ] Halaman riwayat hasil skrining (Riwayat tab)
 - [ ] Grafik perkembangan skor dari waktu ke waktu
 - [ ] Ekspor hasil ke PDF
-- [ ] Fitur profil pengguna
+- [ ] Fitur edit profil pengguna
 
-### Jangka Menengah (v2.2+)
+### Jangka Menengah (v2.3+)
 - [ ] PWA (Progressive Web App) — bisa di-install di HP
 - [ ] Dark mode
 - [ ] Pengingat skrining berkala
@@ -340,7 +377,7 @@ Skor Total = jumlah dari seluruh nilai jawaban (0-3 per pertanyaan)
 ### Jangka Panjang (butuh Backend + Database)
 - [ ] Backend menggunakan Node.js atau Python
 - [ ] Database MySQL / SQLite / Supabase untuk menyimpan data user
-- [ ] Fitur login/register
+- [ ] Fitur register & multi-user
 - [ ] Dashboard admin untuk melihat data agregat
 
 ---
@@ -367,7 +404,8 @@ Skor Total = jumlah dari seluruh nilai jawaban (0-3 per pertanyaan)
 **Dibuat oleh:** GitHub Copilot (DeepSeek V4 Flash)  
 **Tanggal:** 2026-07-07  
 **Framework:** Vanilla JavaScript (tanpa library/framework)  
-**Versi:** 2.0.0 — Multi-file dengan Dashboard + localStorage  
+**Ikon:** Font Awesome 6.5.1 + Material Icons  
+**Versi:** 2.1.0 — Dashboard + Login + localStorage + Edukasi  
 
 ---
 
