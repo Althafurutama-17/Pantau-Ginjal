@@ -140,7 +140,7 @@ const TIPS = {
 
 // ===== STATE APLIKASI =====
 const state = {
-    currentPage: 'home',        // 'home' | 'questionnaire' | 'result'
+    currentPage: 'home',        // 'home' | 'dashboard' | 'questionnaire' | 'result'
     currentQuestion: 0,         // indeks pertanyaan saat ini (0-9)
     answers: new Array(10).fill(null)  // menyimpan nilai jawaban tiap pertanyaan
 };
@@ -148,8 +148,10 @@ const state = {
 // ===== REFERENSI DOM =====
 const $ = (id) => document.getElementById(id);
 const homePage       = $('page-home');
+const dashboardPage  = $('page-dashboard');
 const questionnairePage = $('page-questionnaire');
 const resultPage     = $('page-result');
+const dashboardNav   = $('dashboardNav');
 const navFooter      = $('navFooter');
 const questionContainer = $('questionContainer');
 const progressSection = $('progressSection');
@@ -166,19 +168,29 @@ const btnModalConfirm = $('btnModalConfirm');
 function showPage(pageName) {
     // Sembunyikan semua halaman
     homePage.classList.remove('active');
+    dashboardPage.classList.remove('active');
     questionnairePage.classList.remove('active');
     resultPage.classList.remove('active');
 
-    // Tampilkan halaman yang diminta
+    // Atur visibilitas navigasi dashboard
     if (pageName === 'home') {
         homePage.classList.add('active');
         progressSection.classList.remove('visible');
+        dashboardNav.style.display = 'none';
+    } else if (pageName === 'dashboard') {
+        dashboardPage.classList.add('active');
+        progressSection.classList.remove('visible');
+        dashboardNav.style.display = 'flex';
+        // Inisialisasi dashboard
+        DashboardManager.init();
     } else if (pageName === 'questionnaire') {
         questionnairePage.classList.add('active');
         progressSection.classList.add('visible');
+        dashboardNav.style.display = 'none';
     } else if (pageName === 'result') {
         resultPage.classList.add('active');
         progressSection.classList.remove('visible');
+        dashboardNav.style.display = 'none';
     }
 
     state.currentPage = pageName;
@@ -196,6 +208,9 @@ function renderNavButtons() {
             </button>
         `;
         $('btnStart').addEventListener('click', startQuestionnaire);
+    } else if (page === 'dashboard') {
+        // Dashboard tidak perlu tombol footer — navigasi via tab
+        navFooter.innerHTML = '';
     } else if (page === 'questionnaire') {
         const isFirst = state.currentQuestion === 0;
         const isLast  = state.currentQuestion === QUESTIONS.length - 1;
@@ -216,21 +231,55 @@ function renderNavButtons() {
         }
         $('btnNext').addEventListener('click', nextQuestion);
     } else if (page === 'result') {
+        const hasDashboardData = getScreeningCount() > 0;
         navFooter.innerHTML = `
             <button class="btn btn-primary" id="btnRestart" type="button">
-                ← Kembali ke Beranda
+                ← Kembali ke Dashboard
             </button>
         `;
-        $('btnRestart').addEventListener('click', restartApp);
+        $('btnRestart').addEventListener('click', function () {
+            showPage('dashboard');
+        });
     }
 }
 
 // ===== MEMULAI KUESIONER =====
 function startQuestionnaire() {
     state.currentQuestion = 0;
+    state.answers = new Array(10).fill(null);
+    clearPartialQuestionnaire();
     showPage('questionnaire');
     renderQuestion();
 }
+
+// ===== MELANJUTKAN KUESIONER (dari partial save) =====
+function resumeQuestionnaire() {
+    var partial = getPartialQuestionnaire();
+    if (partial && partial.answers) {
+        state.currentQuestion = partial.currentQuestion || 0;
+        state.answers = partial.answers;
+    } else {
+        state.currentQuestion = 0;
+        state.answers = new Array(10).fill(null);
+    }
+    showPage('questionnaire');
+    renderQuestion();
+}
+
+// ===== MENAMPILKAN HASIL TERAKHIR DARI LOCALSTORAGE =====
+function showLastResult() {
+    var screening = getLatestScreening();
+    if (screening) {
+        // Muat data ke state untuk kompatibilitas
+        state.answers = screening.answers;
+        showResultFromData(screening);
+    }
+}
+
+// Expose fungsi ke global agar bisa dipanggil dari dashboard.js
+window.startQuestionnaire = startQuestionnaire;
+window.resumeQuestionnaire = resumeQuestionnaire;
+window.showLastResult = showLastResult;
 
 // ===== RENDER PERTANYAAN =====
 function renderQuestion() {
@@ -312,6 +361,12 @@ function prevQuestion() {
 function nextQuestion() {
     // Pastikan jawaban sudah dipilih
     if (state.answers[state.currentQuestion] === null) return;
+
+    // Simpan progress parsial ke localStorage
+    savePartialQuestionnaire({
+        currentQuestion: state.currentQuestion,
+        answers: state.answers
+    });
 
     const isLast = state.currentQuestion === QUESTIONS.length - 1;
 
@@ -417,11 +472,23 @@ modalOverlay.addEventListener('keydown', function (e) {
     }
 });
 
-// ===== MENAMPILKAN HALAMAN HASIL =====
+// ===== MENAMPILKAN HALAMAN HASIL (dari state saat ini) =====
 function showResult() {
     const skor = hitungSkor();
     const status = tentukanStatus(skor);
     const tipsList = TIPS[status.key];
+
+    // Simpan ke localStorage
+    saveScreeningResult({
+        answers: state.answers,
+        totalScore: skor,
+        status: status.key,
+        statusLabel: status.label,
+        statusIcon: status.icon
+    });
+
+    // Hapus partial questionnaire
+    clearPartialQuestionnaire();
 
     // Bangun HTML tips
     let tipsHtml = '';
@@ -448,7 +515,35 @@ function showResult() {
     showPage('result');
 }
 
-// ===== KEMBALI KE BERANDA (RESET APLIKASI) =====
+// ===== MENAMPILKAN HASIL DARI DATA TERSIMPAN =====
+function showResultFromData(screening) {
+    const tipsList = TIPS[screening.status] || TIPS.sehat;
+
+    let tipsHtml = '';
+    tipsList.forEach(function (tip) {
+        tipsHtml += '<li>' + tip + '</li>';
+    });
+
+    resultPage.innerHTML = `
+        <div class="result-status-icon">${screening.statusIcon}</div>
+        <div class="result-status-badge ${screening.status}">${screening.statusLabel}</div>
+        <div class="result-score">
+            Skor Anda: <strong>${screening.totalScore}</strong> dari maksimal 30
+        </div>
+        <div class="result-tips">
+            <h3>💙 Kiat untuk Anda:</h3>
+            <ul>${tipsHtml}</ul>
+        </div>
+        <p style="font-size:0.8rem;color:#a0aec0;margin-top:8px;">
+            * Hasil ini bersifat indikasi awal dan bukan diagnosis medis.
+            Tetap konsultasikan kondisi Anda ke tenaga kesehatan profesional.
+        </p>
+    `;
+
+    showPage('result');
+}
+
+// ===== KEMBALI KE BERANDA ATAU DASHBOARD =====
 function restartApp() {
     // Reset state
     state.currentQuestion = 0;
@@ -463,17 +558,29 @@ function restartApp() {
     // Reset konten hasil
     resultPage.innerHTML = '';
 
-    showPage('home');
+    // Jika sudah pernah skrining, langsung ke dashboard
+    var hasData = getScreeningCount() > 0;
+    if (hasData) {
+        showPage('dashboard');
+    } else {
+        showPage('home');
+    }
 
-    // Fokus ke header
+    // Fokus
     setTimeout(() => {
-        const btnStart = $('btnStart');
-        if (btnStart) btnStart.focus();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 200);
 }
 
 // ===== INISIALISASI APLIKASI =====
 document.addEventListener('DOMContentLoaded', function () {
-    showPage('home');
+    // Cek apakah sudah ada data skrining tersimpan
+    var latestScreening = getLatestScreening();
+
+    if (latestScreening) {
+        // Jika sudah pernah skrining, tampilkan dashboard
+        showPage('dashboard');
+    } else {
+        showPage('home');
+    }
 });

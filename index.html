@@ -6,6 +6,7 @@
     <title>Skrining Kesehatan Ginjal</title>
     <!-- CSS external: tampilan & gaya aplikasi -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
 
@@ -30,6 +31,13 @@
         </div>
     </div>
 
+    <!-- ===== DASHBOARD NAVIGASI ===== -->
+    <nav class="dashboard-nav" id="dashboardNav" aria-label="Navigasi dashboard">
+        <button class="nav-tab active" data-page="dashboard" type="button">🏠 Dashboard</button>
+        <button class="nav-tab" data-page="riwayat" type="button">📋 Riwayat</button>
+        <button class="nav-tab" data-page="profil" type="button">👤 Profil</button>
+    </nav>
+
     <!-- ===== KONTEN UTAMA ===== -->
     <main id="mainContent">
         <!-- ===== HALAMAN BERANDA ===== -->
@@ -50,6 +58,50 @@
             <p class="description" style="font-size:0.85rem; color:#718096; margin-bottom:24px; text-align:center;">
                 ⏳ Waktu pengerjaan sekitar 3&ndash;5 menit
             </p>
+        </section>
+
+        <!-- ===== HALAMAN DASHBOARD ===== -->
+        <section id="page-dashboard" class="page" aria-label="Dashboard">
+            <!-- Status Kesehatan -->
+            <div class="dashboard-section">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <span class="card-icon" aria-hidden="true">🩺</span>
+                        <span>Status Kesehatan Ginjal</span>
+                    </div>
+                    <div class="dashboard-card-body" id="dashboard-health-status">
+                        <!-- Diisi oleh dashboard.js -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Akses Kuesioner -->
+            <div class="dashboard-section">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <span class="card-icon" aria-hidden="true">📝</span>
+                        <span>Kuesioner Skrining</span>
+                    </div>
+                    <div class="dashboard-card-body" id="dashboard-questionnaire-access">
+                        <!-- Diisi oleh dashboard.js -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips & Kiat Kesehatan -->
+            <div class="dashboard-section">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <span class="card-icon" aria-hidden="true">💡</span>
+                        <span>Tips &amp; Kiat Kesehatan Ginjal</span>
+                    </div>
+                    <div class="dashboard-card-body">
+                        <div class="tips-list" id="dashboard-tips-content">
+                            <!-- Diisi oleh dashboard.js -->
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- ===== HALAMAN KUESIONER ===== -->
@@ -92,7 +144,9 @@
     </div>
 </div>
 
-<!-- JS external: semua logika aplikasi -->
+<!-- JS external: storage, dashboard, dan logika aplikasi -->
+<script src="js/storage.js"></script>
+<script src="js/dashboard.js"></script>
 <script src="js/app.js"></script>
 
 </body>

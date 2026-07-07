@@ -1,10 +1,10 @@
 # 📋 Dokumentasi Aplikasi: Skrining Kesehatan Ginjal
 
-> **Versi:** 1.1.0  
+> **Versi:** 2.0.0  
 > **Tipe:** Single Page Application (SPA) — Client-side Only  
 > **Target Pengguna:** Masyarakat luas, khususnya lansia (≥60 tahun)  
 > **Bahasa:** Indonesia  
-> **File Utama:** `index.html` (HTML only) + `css/style.css` + `js/app.js`
+> **File Utama:** `index.html` + `css/style.css` + `css/dashboard.css` + `js/app.js` + `js/storage.js` + `js/dashboard.js`
 
 ---
 
@@ -15,10 +15,15 @@ EPIDEMIC UI/
 │
 ├── index.html          # ★ Struktur halaman (HTML saja, tanpa inline CSS/JS)
 ├── css/
-│   └── style.css       # ★ Semua gaya tampilan
+│   ├── style.css       # ★ Gaya tampilan global (kuesioner, hasil, modal)
+│   └── dashboard.css   # ★ Gaya tampilan dashboard & accordion (v2.0)
 ├── js/
-│   └── app.js          # ★ Semua logika JavaScript
+│   ├── storage.js      # ★ localStorage wrapper (v2.0)
+│   ├── dashboard.js    # ★ Logika dashboard & konten edukasi (v2.0)
+│   └── app.js          # ★ Logika utama (navigasi, kuesioner, scoring)
 ├── DOKUMENTASI.md      # ★ Dokumentasi ini
+├── README.md
+└── github_code.md
 ```
 
 ---
@@ -35,10 +40,16 @@ EPIDEMIC UI/
 | 6 | Modal konfirmasi sebelum hasil | ✅ Selesai |
 | 7 | Penilaian otomatis 3 kategori | ✅ Selesai |
 | 8 | Tips spesifik per kategori (5 tips masing-masing) | ✅ Selesai |
-| 9 | Tombol "Kembali ke Beranda" (reset) | ✅ Selesai |
+| 9 | Tombol "Kembali ke Beranda/Dashboard" | ✅ Selesai |
 | 10 | Desain ramah lansia (font ≥20px, tombol ≥56px) | ✅ Selesai |
 | 11 | Responsif (desktop, tablet, mobile) | ✅ Selesai |
 | 12 | Aksesibilitas (semantic HTML, aria-*, focus management) | ✅ Selesai |
+| 13 | **Dashboard 3 area (Status, Kuesioner, Tips)** | ✅ **v2.0** |
+| 14 | **localStorage — data tahan refresh** | ✅ **v2.0** |
+| 15 | **Tab navigasi (Dashboard / Riwayat / Profil)** | ✅ **v2.0** |
+| 16 | **Tips edukasi expandable (accordion)** | ✅ **v2.0** |
+| 17 | **Konten edukasi 4 kategori kesehatan ginjal** | ✅ **v2.0** |
+| 18 | **Partial save kuesioner** | ✅ **v2.0** |
 
 ---
 
@@ -48,51 +59,66 @@ EPIDEMIC UI/
 
 ```javascript
 const state = {
-    currentPage: 'home',        // 'home' | 'questionnaire' | 'result'
+    currentPage: 'home',        // 'home' | 'dashboard' | 'questionnaire' | 'result'
     currentQuestion: 0,         // index pertanyaan (0-9)
     answers: [null, null, ...]  // array 10 nilai jawaban (0-3)
 };
 ```
 
-### Alur Navigasi
+### Alur Navigasi (v2.0)
 
 ```
-[Beranda] ──"Mulai Kuesioner"──▶ [Kuesioner Q1..Q10]
+[Beranda] ◀── (pengguna baru) ──▶ [Dashboard] ◀── (pengguna lama) ──▶ [Tab: Riwayat/Profil]
+    │                                      │
+    │ "Mulai Kuesioner"                    │ "Mulai / Isi Ulang / Lanjutkan"
+    ▼                                      ▼
+[Kuesioner Q1..Q10] ◀── "Kembali" ──▶ [Kuesioner Q1..Q10]
+    │                                      │
+    └──"Selanjutnya"──▶ (setelah Q10)  ◀───┘
+                               │
+                               ▼
+                       [Modal Konfirmasi]
+                        /              \
+                  "Kembali"      "Ya, Tampilkan Hasil"
+                       │              │
+                       ▼              ▼
+                  [Kuesioner]    [Halaman Hasil]
                                       │
-                          ◀──"Kembali"│"Selanjutnya"──▶
-                                      │
-                              (setelah Q10)
+                              "Kembali ke Dashboard"
                                       │
                                       ▼
-                              [Modal Konfirmasi]
-                              /                \
-                        "Kembali"          "Ya, Tampilkan Hasil"
-                              │                  │
-                              ▼                  ▼
-                        [Kuesioner]          [Halaman Hasil]
-                                                  │
-                                          "Kembali ke Beranda"
-                                                  │
-                                                  ▼
-                                            [Beranda] (reset)
+                                 [Dashboard]
 ```
+
+### File-File Baru (v2.0)
+
+| File | Tugas |
+|------|-------|
+| `js/storage.js` | Wrapper localStorage — simpan/ambil hasil skrining & partial kuesioner |
+| `js/dashboard.js` | Dashboard manager — render status, kuesioner, tips accordion |
+| `css/dashboard.css` | Gaya dashboard, kartu, navigasi tab, accordion, responsif |
 
 ### Fungsi-Fungsi Utama (JavaScript)
 
-| Fungsi | Tugas |
-|--------|-------|
-| `showPage(pageName)` | Pindah halaman (home/questionnaire/result) |
-| `renderNavButtons()` | Render tombol navigasi sesuai halaman aktif |
-| `startQuestionnaire()` | Mulai kuesioner dari pertanyaan 1 |
-| `renderQuestion()` | Tampilkan pertanyaan + opsi jawaban |
-| `updateProgress()` | Update progress bar (persentase & teks) |
-| `prevQuestion()` | Pindah ke pertanyaan sebelumnya |
-| `nextQuestion()` | Simpan jawaban → pindah ke pertanyaan berikutnya / tampilkan modal |
-| `hitungSkor()` | Jumlahkan semua nilai jawaban |
-| `tentukanStatus(skor)` | Tentukan kategori berdasarkan skor |
-| `showConfirmationModal()` | Tampilkan modal ringkasan jawaban |
-| `showResult()` | Hitung skor + tampilkan hasil & tips |
-| `restartApp()` | Reset state + kembali ke beranda |
+| Fungsi | File | Tugas |
+|--------|------|-------|
+| `showPage(pageName)` | app.js | Pindah halaman (home/dashboard/questionnaire/result) |
+| `renderNavButtons()` | app.js | Render tombol navigasi sesuai halaman aktif |
+| `startQuestionnaire()` | app.js | Mulai kuesioner baru (reset + clear partial) |
+| `resumeQuestionnaire()` | app.js | Lanjutkan kuesioner dari partial save |
+| `showLastResult()` | app.js | Tampilkan hasil skrining terakhir dari localStorage |
+| `renderQuestion()` | app.js | Tampilkan pertanyaan + opsi jawaban |
+| `updateProgress()` | app.js | Update progress bar (persentase & teks) |
+| `prevQuestion()` | app.js | Pindah ke pertanyaan sebelumnya |
+| `nextQuestion()` | app.js | Simpan jawaban → partial save → pindah / modal |
+| `hitungSkor()` | app.js | Jumlahkan semua nilai jawaban |
+| `tentukanStatus(skor)` | app.js | Tentukan kategori berdasarkan skor |
+| `showResult()` | app.js | Hitung skor + save ke localStorage + tampilkan hasil |
+| `restartApp()` | app.js | Reset state + kembali ke dashboard/beranda |
+| `saveScreeningResult()` | storage.js | Simpan hasil skrining ke localStorage |
+| `getLatestScreening()` | storage.js | Ambil hasil skrining terakhir |
+| `savePartialQuestionnaire()` | storage.js | Simpan progress kuesioner parsial |
+| `DashboardManager.init()` | dashboard.js | Inisialisasi dashboard (render semua kartu) |
 
 ---
 
@@ -283,25 +309,37 @@ Skor Total = jumlah dari seluruh nilai jawaban (0-3 per pertanyaan)
 ### Catatan
 - Tidak perlu koneksi internet
 - Tidak perlu install apa-apa
-- Semua data hilang saat halaman di-refresh (tidak ada database)
+- ✅ Data skrining tersimpan di **localStorage** — tidak hilang saat refresh atau ditutup
+- Untuk menghapus data: buka DevTools → Application → Local Storage → hapus key `ginjal_screenings`
+- Atau panggil `clearAllData()` di console browser
 
 ---
 
 ## 🔮 Rencana Pengembangan ke Depan
 
-### Jangka Pendek
+### ✅ Sudah Tercapai (v2.0)
 - [x] Pisahkan CSS ke file `css/style.css` ✅ (v1.1)
 - [x] Pisahkan JS ke file `js/app.js` ✅ (v1.1)
-- [ ] Tambah `localStorage` agar jawaban tidak hilang saat refresh
+- [x] Tambah `localStorage` agar jawaban tidak hilang saat refresh ✅ (v2.0)
+- [x] Dashboard 3 area (Status, Kuesioner, Tips) ✅ (v2.0)
+- [x] Navigasi tab (Dashboard / Riwayat / Profil) ✅ (v2.0)
+- [x] Tips edukasi expandable (accordion) ✅ (v2.0)
+- [x] Partial save kuesioner ✅ (v2.0)
 
-### Jangka Menengah
-- [ ] Halaman riwayat hasil skrining
+### Jangka Pendek (v2.1)
+- [ ] Halaman riwayat hasil skrining (Riwayat tab)
 - [ ] Grafik perkembangan skor dari waktu ke waktu
 - [ ] Ekspor hasil ke PDF
+- [ ] Fitur profil pengguna
+
+### Jangka Menengah (v2.2+)
+- [ ] PWA (Progressive Web App) — bisa di-install di HP
+- [ ] Dark mode
+- [ ] Pengingat skrining berkala
 
 ### Jangka Panjang (butuh Backend + Database)
 - [ ] Backend menggunakan Node.js atau Python
-- [ ] Database MySQL / SQLite untuk menyimpan data user
+- [ ] Database MySQL / SQLite / Supabase untuk menyimpan data user
 - [ ] Fitur login/register
 - [ ] Dashboard admin untuk melihat data agregat
 
@@ -326,10 +364,10 @@ Skor Total = jumlah dari seluruh nilai jawaban (0-3 per pertanyaan)
 
 ## 📞 Kontak & Informasi
 
-**Dibuat oleh:** GitHub Copilot (MiMo V2.5)  
-**Tanggal:** 2026-07-06  
+**Dibuat oleh:** GitHub Copilot (DeepSeek V4 Flash)  
+**Tanggal:** 2026-07-07  
 **Framework:** Vanilla JavaScript (tanpa library/framework)  
-**Versi:** 1.1.0 — Multi-file (HTML + CSS + JS terpisah)  
+**Versi:** 2.0.0 — Multi-file dengan Dashboard + localStorage  
 
 ---
 
