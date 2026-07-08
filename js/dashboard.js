@@ -39,7 +39,7 @@ const HEALTH_TIPS = [
             <p>Penyakit ginjal adalah kondisi ketika ginjal tidak dapat berfungsi dengan baik dalam menyaring limbah dan kelebihan cairan dari darah. Jika tidak ditangani, dapat menyebabkan penumpukan racun dalam tubuh yang berbahaya bagi kesehatan.</p>
             <p>Penyakit ginjal sering disebut sebagai <strong>"silent killer"</strong> karena pada tahap awal sering tidak menimbulkan gejala yang jelas. Banyak orang baru menyadari setelah kondisinya sudah parah.</p>
             <div class="highlight-box">
-                📊 Menurut data Kementerian Kesehatan RI, sekitar 1 dari 10 orang dewasa di Indonesia berisiko mengalami gangguan ginjal. Deteksi dini sangat penting untuk mencegah kerusakan lebih lanjut.
+                <strong>Data Kemenkes RI:</strong> sekitar 1 dari 10 orang dewasa di Indonesia berisiko mengalami gangguan ginjal. Deteksi dini sangat penting untuk mencegah kerusakan lebih lanjut.
             </div>
         `
     },
@@ -48,24 +48,24 @@ const HEALTH_TIPS = [
         icon: '<i class="fa-solid fa-gears"></i>',
         title: 'Mengapa Ginjal Penting?',
         content: `
-            <div class="sub-heading">✅ Fungsi Ginjal</div>
-            <ul style="list-style:none;padding:0;">
-                <li style="padding:5px 0 5px 28px;position:relative;">💧 Menyaring limbah dan racun dari darah</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">⚖️ Mengatur keseimbangan cairan dan elektrolit</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">💉 Menghasilkan hormon untuk mengatur tekanan darah</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🩸 Memproduksi sel darah merah (eritropoietin)</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🧪 Menjaga keseimbangan asam-basa dalam tubuh</li>
+            <div class="sub-heading">Fungsi Ginjal</div>
+            <ul class="accordion-list">
+                <li>Menyaring limbah dan racun dari darah</li>
+                <li>Mengatur keseimbangan cairan dan elektrolit</li>
+                <li>Menghasilkan hormon untuk mengatur tekanan darah</li>
+                <li>Memproduksi sel darah merah (eritropoietin)</li>
+                <li>Menjaga keseimbangan asam-basa dalam tubuh</li>
             </ul>
-            <div class="sub-heading">⚠️ Bahaya Jika Ginjal Rusak</div>
-            <ul style="list-style:none;padding:0;">
-                <li style="padding:5px 0 5px 28px;position:relative;">☠️ Penumpukan racun dalam darah (uremia) — bisa menyebabkan kerusakan otak</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">📈 Tekanan darah tinggi yang sulit dikendalikan</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🩸 Anemia (kekurangan sel darah merah) — menyebabkan lemas dan pucat</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🦴 Gangguan tulang karena ketidakseimbangan kalsium dan fosfor</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🏥 Gagal ginjal stadium akhir — membutuhkan cuci darah (dialisis) atau transplantasi ginjal</li>
+            <div class="sub-heading">Bahaya Jika Ginjal Rusak</div>
+            <ul class="accordion-list">
+                <li>Penumpukan racun dalam darah (uremia) — bisa menyebabkan kerusakan otak</li>
+                <li>Tekanan darah tinggi yang sulit dikendalikan</li>
+                <li>Anemia (kekurangan sel darah merah) — menyebabkan lemas dan pucat</li>
+                <li>Gangguan tulang karena ketidakseimbangan kalsium dan fosfor</li>
+                <li>Gagal ginjal stadium akhir — membutuhkan cuci darah (dialisis) atau transplantasi ginjal</li>
             </ul>
             <div class="highlight-box warning">
-                🚨 Setiap kerusakan ginjal bersifat permanen. Ginjal yang rusak tidak bisa diperbaiki. Oleh karena itu, pencegahan dan deteksi dini sangat penting!
+                <strong>Peringatan:</strong> Setiap kerusakan ginjal bersifat permanen. Ginjal yang rusak tidak bisa diperbaiki. Oleh karena itu, pencegahan dan deteksi dini sangat penting!
             </div>
         `
     },
@@ -75,20 +75,20 @@ const HEALTH_TIPS = [
         title: 'Gejala & Indikasi Awal',
         content: `
             <p>Gejala awal penyakit ginjal sering tidak disadari karena mirip dengan penyakit ringan biasa. Waspadai tanda-tanda berikut:</p>
-            <ul style="list-style:none;padding:0;">
-                <li style="padding:5px 0 5px 28px;position:relative;">😴 <strong>Kelelahan tanpa sebab jelas</strong> — tubuh terasa lemah meski tidak banyak beraktivitas</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🦶 <strong>Pembengkakan di kaki/pergelangan kaki</strong> — karena penumpukan cairan (edema)</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🫧 <strong>Urine berbusa atau berbuih</strong> — tanda protein dalam urine (proteinuria)</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🌙 <strong>Sering buang air kecil di malam hari</strong> — lebih dari 2 kali per malam</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">💢 <strong>Nyeri pinggang belakang</strong> — terutama di area ginjal (pinggang bagian atas)</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🍽️ <strong>Penurunan nafsu makan</strong> — karena penumpukan racun memengaruhi sistem pencernaan</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🖐️ <strong>Gatal-gatal pada kulit</strong> — akibat penumpukan fosfor dan limbah di darah</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">😮‍💨 <strong>Sesak napas setelah aktivitas ringan</strong> — karena kelebihan cairan di paru-paru</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🤢 <strong>Mual atau muntah</strong> — terutama di pagi hari, akibat penumpukan racun</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🩺 <strong>Riwayat hipertensi</strong> — tekanan darah tinggi sulit terkontrol meski sudah minum obat</li>
-            </ul>
+            <ol class="accordion-list numbered">
+                <li><strong>Kelelahan tanpa sebab jelas</strong> — tubuh terasa lemah meski tidak banyak beraktivitas</li>
+                <li><strong>Pembengkakan di kaki/pergelangan kaki</strong> — karena penumpukan cairan (edema)</li>
+                <li><strong>Urine berbusa atau berbuih</strong> — tanda protein dalam urine (proteinuria)</li>
+                <li><strong>Sering buang air kecil di malam hari</strong> — lebih dari 2 kali per malam</li>
+                <li><strong>Nyeri pinggang belakang</strong> — terutama di area ginjal (pinggang bagian atas)</li>
+                <li><strong>Penurunan nafsu makan</strong> — karena penumpukan racun memengaruhi sistem pencernaan</li>
+                <li><strong>Gatal-gatal pada kulit</strong> — akibat penumpukan fosfor dan limbah di darah</li>
+                <li><strong>Sesak napas setelah aktivitas ringan</strong> — karena kelebihan cairan di paru-paru</li>
+                <li><strong>Mual atau muntah</strong> — terutama di pagi hari, akibat penumpukan racun</li>
+                <li><strong>Riwayat hipertensi</strong> — tekanan darah tinggi sulit terkontrol meski sudah minum obat</li>
+            </ol>
             <div class="highlight-box warning">
-                🩺 Jika Anda mengalami 2 atau lebih gejala di atas, segera konsultasikan ke dokter untuk pemeriksaan lebih lanjut!
+                <strong>Jika Anda mengalami 2 atau lebih gejala di atas, segera konsultasikan ke dokter untuk pemeriksaan lebih lanjut!</strong>
             </div>
         `
     },
@@ -97,29 +97,29 @@ const HEALTH_TIPS = [
         icon: '<i class="fa-solid fa-shield-heart"></i>',
         title: 'Pencegahan & Penanganan',
         content: `
-            <div class="sub-heading">✅ 10 Cara Menjaga Kesehatan Ginjal</div>
-            <ol style="padding-left:20px;margin:8px 0;">
-                <li style="padding:4px 0;"><strong>Batasi konsumsi garam</strong> — maksimal 1 sendok teh (5 gram) per hari. Hindari keripik, mie instan, dan makanan olahan.</li>
-                <li style="padding:4px 0;"><strong>Minum air putih 8 gelas/hari</strong> — sekitar 2 liter, kecuali ada kondisi khusus yang membatasi cairan.</li>
-                <li style="padding:4px 0;"><strong>Cek tekanan darah rutin</strong> — minimal 1 bulan sekali. Hipertensi adalah penyebab utama penyakit ginjal.</li>
-                <li style="padding:4px 0;"><strong>Hindari NSAID berlebihan</strong> — seperti ibuprofen, aspirin, diklofenak. Obat ini bisa merusak ginjal jika digunakan jangka panjang.</li>
-                <li style="padding:4px 0;"><strong>Olahraga ringan 30 menit/hari</strong> — jalan kaki, bersepeda santai, atau berenang.</li>
-                <li style="padding:4px 0;"><strong>Kurangi protein hewani berlebih</strong> — daging merah, jeroan, dan makanan tinggi protein membebani kerja ginjal.</li>
-                <li style="padding:4px 0;"><strong>Perbanyak sayur dan buah segar</strong> — pilih yang rendah kalium seperti apel, anggur, kol, mentimun.</li>
-                <li style="padding:4px 0;"><strong>Kontrol gula darah</strong> — jika Anda diabetes, jaga gula darah tetap stabil karena diabetes adalah penyebab utama gagal ginjal.</li>
-                <li style="padding:4px 0;"><strong>Hindari alkohol & kurangi kafein</strong> — alkohol dan kafein berlebih dapat memengaruhi tekanan darah dan hidrasi.</li>
-                <li style="padding:4px 0;"><strong>Jangan menahan buang air kecil</strong> — menahan kencing meningkatkan tekanan pada ginjal dan risiko infeksi saluran kemih.</li>
+            <div class="sub-heading">10 Cara Menjaga Kesehatan Ginjal</div>
+            <ol class="accordion-list numbered">
+                <li><strong>Batasi konsumsi garam</strong> — maksimal 1 sendok teh (5 gram) per hari. Hindari keripik, mie instan, dan makanan olahan.</li>
+                <li><strong>Minum air putih 8 gelas/hari</strong> — sekitar 2 liter, kecuali ada kondisi khusus yang membatasi cairan.</li>
+                <li><strong>Cek tekanan darah rutin</strong> — minimal 1 bulan sekali. Hipertensi adalah penyebab utama penyakit ginjal.</li>
+                <li><strong>Hindari NSAID berlebihan</strong> — seperti ibuprofen, aspirin, diklofenak. Obat ini bisa merusak ginjal jika digunakan jangka panjang.</li>
+                <li><strong>Olahraga ringan 30 menit/hari</strong> — jalan kaki, bersepeda santai, atau berenang.</li>
+                <li><strong>Kurangi protein hewani berlebih</strong> — daging merah, jeroan, dan makanan tinggi protein membebani kerja ginjal.</li>
+                <li><strong>Perbanyak sayur dan buah segar</strong> — pilih yang rendah kalium seperti apel, anggur, kol, mentimun.</li>
+                <li><strong>Kontrol gula darah</strong> — jika Anda diabetes, jaga gula darah tetap stabil karena diabetes adalah penyebab utama gagal ginjal.</li>
+                <li><strong>Hindari alkohol & kurangi kafein</strong> — alkohol dan kafein berlebih dapat memengaruhi tekanan darah dan hidrasi.</li>
+                <li><strong>Jangan menahan buang air kecil</strong> — menahan kencing meningkatkan tekanan pada ginjal dan risiko infeksi saluran kemih.</li>
             </ol>
-            <div class="sub-heading">🩺 Kapan Harus ke Dokter?</div>
-            <ul style="list-style:none;padding:0;">
-                <li style="padding:5px 0 5px 28px;position:relative;">📋 Jika hasil skrining menunjukkan <strong>skor 13-30 (Konsultasi / Risiko Tinggi)</strong></li>
-                <li style="padding:5px 0 5px 28px;position:relative;">🤒 Jika Anda memiliki <strong>2 atau lebih gejala</strong> yang disebutkan di atas</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">👨‍👩‍👧‍👦 Jika ada <strong>riwayat keluarga</strong> dengan penyakit ginjal atau diabetes</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">💊 Jika Anda mengonsumsi obat-obatan tertentu dalam jangka panjang</li>
-                <li style="padding:5px 0 5px 28px;position:relative;">📈 Jika tekanan darah Anda <strong>sulit terkontrol</strong> meski sudah minum obat hipertensi</li>
+            <div class="sub-heading">Kapan Harus ke Dokter?</div>
+            <ul class="accordion-list">
+                <li>Jika hasil skrining menunjukkan <strong>skor 13-30 (Konsultasi / Risiko Tinggi)</strong></li>
+                <li>Jika Anda memiliki <strong>2 atau lebih gejala</strong> yang disebutkan di atas</li>
+                <li>Jika ada <strong>riwayat keluarga</strong> dengan penyakit ginjal atau diabetes</li>
+                <li>Jika Anda mengonsumsi obat-obatan tertentu dalam jangka panjang</li>
+                <li>Jika tekanan darah Anda <strong>sulit terkontrol</strong> meski sudah minum obat hipertensi</li>
             </ul>
             <div class="highlight-box">
-                💙 Ingatlah: Deteksi dini menyelamatkan ginjal Anda! Jangan ragu untuk memeriksakan diri ke dokter secara rutin.
+                <strong>Ingatlah:</strong> Deteksi dini menyelamatkan ginjal Anda! Jangan ragu untuk memeriksakan diri ke dokter secara rutin.
             </div>
         `
     }

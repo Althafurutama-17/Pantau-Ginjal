@@ -333,6 +333,28 @@
     font-size: 0.9rem;
 }
 
+/* List khusus accordion (tanpa emoji) */
+.accordion-list {
+    list-style: disc;
+    padding-left: 24px;
+    margin: 8px 0;
+}
+
+.accordion-list li {
+    padding: 5px 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.accordion-list.numbered {
+    list-style: decimal;
+    padding-left: 24px;
+}
+
+.accordion-list.numbered li {
+    padding: 4px 0;
+}
+
 .accordion-content-inner ul li:nth-child(n):nth-child(-n+10)::before {
     content: counter(list-item) ".";
     color: #1a7fc4;
