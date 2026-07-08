@@ -33,13 +33,6 @@
         </div>
     </div>
 
-    <!-- ===== DASHBOARD NAVIGASI ===== -->
-    <nav class="dashboard-nav" id="dashboardNav" aria-label="Navigasi dashboard">
-        <button class="nav-tab active" data-page="dashboard" type="button"><i class="fa-solid fa-house"></i> Dashboard</button>
-        <button class="nav-tab" data-page="riwayat" type="button"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat</button>
-        <button class="nav-tab" data-page="profil" type="button"><i class="fa-solid fa-user"></i> Profil</button>
-    </nav>
-
     <!-- ===== KONTEN UTAMA ===== -->
     <main id="mainContent">
         <!-- ===== HALAMAN BERANDA ===== -->
@@ -122,7 +115,7 @@
                 </div>
             </div>
 
-            <!-- Tips & Kiat Kesehatan -->
+            <!-- Tips & Kiat Kesehatan (Preview) -->
             <div class="dashboard-section">
                 <div class="dashboard-card">
                     <div class="dashboard-card-header">
@@ -130,9 +123,12 @@
                         <span>Tips &amp; Kiat Kesehatan Ginjal</span>
                     </div>
                     <div class="dashboard-card-body">
-                        <div class="tips-list" id="dashboard-tips-content">
+                        <div class="tips-preview" id="dashboard-tips-preview">
                             <!-- Diisi oleh dashboard.js -->
                         </div>
+                        <button class="btn btn-primary btn-tips-link" id="btnTipsLink" type="button">
+                            <i class="fa-solid fa-lightbulb"></i> Lihat Semua Tips →
+                        </button>
                     </div>
                 </div>
             </div>
@@ -149,7 +145,54 @@
         <section id="page-result" class="page" aria-label="Hasil">
             <!-- Konten diisi oleh JavaScript -->
         </section>
+
+        <!-- ===== HALAMAN TIPS ===== -->
+        <section id="page-tips" class="page" aria-label="Tips & Kiat">
+            <div class="tips-page-header">
+                <div class="tips-page-icon" aria-hidden="true"><i class="fa-solid fa-lightbulb"></i></div>
+                <h2>Tips &amp; Kiat Kesehatan Ginjal</h2>
+                <p class="description">Informasi penting untuk menjaga kesehatan ginjal Anda</p>
+            </div>
+            <div class="dashboard-section">
+                <div class="tips-list" id="tips-page-content">
+                    <!-- Diisi oleh JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== HALAMAN RIWAYAT ===== -->
+        <section id="page-riwayat" class="page" aria-label="Riwayat">
+            <div class="coming-soon-container">
+                <div class="coming-soon-icon" aria-hidden="true"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                <h2>Riwayat Skrining</h2>
+                <p class="coming-soon-text">Fitur ini masih dalam pengembangan.</p>
+                <p class="coming-soon-sub">Nantikan update selanjutnya untuk melihat riwayat skrining Anda.</p>
+                <div class="coming-soon-badge">
+                    <i class="fa-solid fa-wrench"></i> Dalam Pengembangan
+                </div>
+            </div>
+        </section>
     </main>
+
+    <!-- ===== BOTTOM NAVIGASI ===== -->
+    <nav class="bottom-nav" id="bottomNav" aria-label="Navigasi halaman">
+        <button class="bottom-nav-tab active" data-page="dashboard" type="button">
+            <i class="fa-solid fa-house"></i>
+            <span>Dashboard</span>
+        </button>
+        <button class="bottom-nav-tab" data-page="riwayat" type="button">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>Riwayat</span>
+        </button>
+        <button class="bottom-nav-tab" data-page="tips" type="button">
+            <i class="fa-solid fa-lightbulb"></i>
+            <span>Tips</span>
+        </button>
+        <button class="bottom-nav-tab" data-page="profile" type="button">
+            <i class="fa-solid fa-user"></i>
+            <span>Profil</span>
+        </button>
+    </nav>
 
     <!-- ===== FOOTER NAVIGASI ===== -->
     <footer class="nav-footer" id="navFooter">
@@ -173,6 +216,23 @@
             </button>
             <button class="btn btn-success" id="btnModalConfirm" type="button">
                 Ya, Tampilkan Hasil ✓
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL LOGOUT KUSTOM ===== -->
+<div class="modal-overlay" id="logoutModalOverlay" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle">
+    <div class="modal-content logout-modal">
+        <div class="logout-modal-icon" aria-hidden="true"><i class="fa-solid fa-right-from-bracket"></i></div>
+        <h2 id="logoutModalTitle">Konfirmasi Keluar</h2>
+        <p class="logout-modal-text">Apakah Anda yakin ingin keluar? Semua data skrining akan dihapus.</p>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="btnLogoutCancel" type="button">
+                Batal
+            </button>
+            <button class="btn btn-danger" id="btnLogoutConfirm" type="button">
+                Ya, Keluar <i class="fa-solid fa-right-from-bracket"></i>
             </button>
         </div>
     </div>

@@ -155,7 +155,9 @@ const homePage       = $('page-home');
 const dashboardPage  = $('page-dashboard');
 const questionnairePage = $('page-questionnaire');
 const resultPage     = $('page-result');
-const dashboardNav   = $('dashboardNav');
+const tipsPage       = $('page-tips');
+const riwayatPage    = $('page-riwayat');
+const bottomNav      = $('bottomNav');
 const navFooter      = $('navFooter');
 const questionContainer = $('questionContainer');
 const progressSection = $('progressSection');
@@ -167,6 +169,9 @@ const modalOverlay   = $('modalOverlay');
 const modalSummary   = $('modalSummary');
 const btnModalBack   = $('btnModalBack');
 const btnModalConfirm = $('btnModalConfirm');
+const logoutModalOverlay = $('logoutModalOverlay');
+const btnLogoutCancel = $('btnLogoutCancel');
+const btnLogoutConfirm = $('btnLogoutConfirm');
 
 // ===== FUNGSI NAVIGASI HALAMAN =====
 function showPage(pageName) {
@@ -177,16 +182,19 @@ function showPage(pageName) {
     profilePage.classList.remove('active');
     questionnairePage.classList.remove('active');
     resultPage.classList.remove('active');
+    tipsPage.classList.remove('active');
+    riwayatPage.classList.remove('active');
 
-    // Atur visibilitas navigasi dashboard
+    // Atur visibilitas bottom navigation
+    const showBottomNav = ['dashboard', 'profile', 'tips', 'riwayat'].includes(pageName);
+    bottomNav.classList.toggle('visible', showBottomNav);
+
     if (pageName === 'login') {
         loginPage.classList.add('active');
         progressSection.classList.remove('visible');
-        dashboardNav.style.display = 'none';
     } else if (pageName === 'dashboard') {
         dashboardPage.classList.add('active');
         progressSection.classList.remove('visible');
-        dashboardNav.style.display = 'flex';
         // Aktifkan tab Dashboard
         DashboardManager.activateDashboardTab();
         // Inisialisasi dashboard
@@ -194,19 +202,28 @@ function showPage(pageName) {
     } else if (pageName === 'profile') {
         profilePage.classList.add('active');
         progressSection.classList.remove('visible');
-        dashboardNav.style.display = 'flex';
         // Aktifkan tab Profil
         DashboardManager.activateProfileTab();
         // Render profil
         DashboardManager.renderProfile();
+    } else if (pageName === 'tips') {
+        tipsPage.classList.add('active');
+        progressSection.classList.remove('visible');
+        // Aktifkan tab Tips
+        DashboardManager.activateTipsTab();
+        // Render tips
+        DashboardManager.renderTipsPage();
+    } else if (pageName === 'riwayat') {
+        riwayatPage.classList.add('active');
+        progressSection.classList.remove('visible');
+        // Aktifkan tab Riwayat
+        DashboardManager.activateRiwayatTab();
     } else if (pageName === 'questionnaire') {
         questionnairePage.classList.add('active');
         progressSection.classList.add('visible');
-        dashboardNav.style.display = 'none';
     } else if (pageName === 'result') {
         resultPage.classList.add('active');
         progressSection.classList.remove('visible');
-        dashboardNav.style.display = 'none';
     }
 
     state.currentPage = pageName;
@@ -586,9 +603,26 @@ function login() {
 
 // ===== FUNGSI LOGOUT =====
 function logout() {
-    // Tampilkan konfirmasi
-    var confirmed = confirm('Apakah Anda yakin ingin keluar? Semua data skrining akan dihapus.');
-    if (!confirmed) return;
+    // Tampilkan modal logout kustom
+    logoutModalOverlay.classList.add('active');
+    setTimeout(() => btnLogoutCancel.focus(), 200);
+    document.body.style.overflow = 'hidden';
+}
+
+// ===== KONFIRMASI LOGOUT: KEMBALI =====
+btnLogoutCancel.addEventListener('click', function () {
+    logoutModalOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+    setTimeout(() => {
+        var btnLogout = document.getElementById('btnLogout');
+        if (btnLogout) btnLogout.focus();
+    }, 200);
+});
+
+// ===== KONFIRMASI LOGOUT: PROSES KELUAR =====
+btnLogoutConfirm.addEventListener('click', function () {
+    logoutModalOverlay.classList.remove('active');
+    document.body.style.overflow = '';
 
     // Hapus semua data
     clearAllData();
@@ -606,7 +640,7 @@ function logout() {
 
     // Kembali ke halaman login
     showPage('login');
-}
+});
 
 // Expose fungsi ke global
 window.login = login;
@@ -622,4 +656,35 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnLogin) {
         btnLogin.addEventListener('click', login);
     }
+
+    // Event listener bottom navigation
+    var bottomTabs = document.querySelectorAll('.bottom-nav-tab');
+    bottomTabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            var page = this.dataset.page;
+            bottomTabs.forEach(function (t) { t.classList.remove('active'); });
+            this.classList.add('active');
+            showPage(page);
+        });
+    });
+
+    // Event listener tombol link ke Tips
+    var btnTipsLink = document.getElementById('btnTipsLink');
+    if (btnTipsLink) {
+        btnTipsLink.addEventListener('click', function () {
+            showPage('tips');
+        });
+    }
+
+    // Tutup logout modal dengan Escape
+    logoutModalOverlay.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            logoutModalOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+            setTimeout(function () {
+                var btnLogout = document.getElementById('btnLogout');
+                if (btnLogout) btnLogout.focus();
+            }, 200);
+        }
+    });
 });

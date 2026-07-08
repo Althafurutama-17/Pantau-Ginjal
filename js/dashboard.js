@@ -135,9 +135,7 @@ const DashboardManager = {
         const latestScreening = getLatestScreening();
         this.renderHealthStatus(latestScreening);
         this.renderQuestionnaireAccess(latestScreening);
-        this.renderTips();
-        this.setupAccordion();
-        this.setupTabNavigation();
+        this.renderTipsPreview();
     },
 
     /**
@@ -269,14 +267,41 @@ const DashboardManager = {
     },
 
     /**
-     * Merender Tips & Kiat Kesehatan Ginjal (accordion).
+     * Merender preview Tips di Dashboard (2 item pertama).
      */
-    renderTips: function () {
-        const container = document.getElementById('dashboard-tips-content');
+    renderTipsPreview: function () {
+        const container = document.getElementById('dashboard-tips-preview');
         if (!container) return;
 
         let tipsHtml = '';
-        HEALTH_TIPS.forEach(function (tip, index) {
+        // Tampilkan 2 tips pertama sebagai preview
+        HEALTH_TIPS.slice(0, 2).forEach(function (tip) {
+            tipsHtml += `
+                <div class="tips-preview-item">
+                    <span class="tips-preview-icon">${tip.icon}</span>
+                    <span class="tips-preview-title">${tip.title}</span>
+                </div>
+            `;
+        });
+        // Tambahkan item placeholder
+        tipsHtml += `
+            <div class="tips-preview-item" style="opacity:0.5;">
+                <span class="tips-preview-icon"><i class="fa-solid fa-ellipsis"></i></span>
+                <span class="tips-preview-title">Dan masih banyak lagi...</span>
+            </div>
+        `;
+        container.innerHTML = tipsHtml;
+    },
+
+    /**
+     * Merender halaman Tips penuh dengan accordion.
+     */
+    renderTipsPage: function () {
+        const container = document.getElementById('tips-page-content');
+        if (!container) return;
+
+        let tipsHtml = '';
+        HEALTH_TIPS.forEach(function (tip) {
             tipsHtml += `
                 <div class="accordion-item" id="accordion-${tip.id}">
                     <button class="accordion-header"
@@ -299,8 +324,10 @@ const DashboardManager = {
                 </div>
             `;
         });
-
         container.innerHTML = tipsHtml;
+
+        // Setup accordion
+        this.setupAccordion();
     },
 
     /**
@@ -335,38 +362,17 @@ const DashboardManager = {
     },
 
     /**
-     * Setup navigasi tab di dashboard.
+     * Setup navigasi tab di dashboard (deprecated — tabs now at bottom).
      */
     setupTabNavigation: function () {
-        var tabs = document.querySelectorAll('.nav-tab');
-        tabs.forEach(function (tab) {
-            tab.addEventListener('click', function () {
-                var page = this.dataset.page;
-
-                // Update active tab
-                tabs.forEach(function (t) { t.classList.remove('active'); });
-                this.classList.add('active');
-
-                // Navigasi
-                if (page === 'dashboard') {
-                    showPage('dashboard');
-                } else if (page === 'riwayat') {
-                    // Riwayat - placeholder
-                    alert('Fitur Riwayat sedang dalam pengembangan. Nantikan update selanjutnya!');
-                    // Kembalikan tab ke dashboard
-                    DashboardManager.activateDashboardTab();
-                } else if (page === 'profil') {
-                    showPage('profile');
-                }
-            });
-        });
+        // Kept for backward compatibility but no longer used
     },
 
     /**
      * Update tab aktif saat halaman dashboard ditampilkan.
      */
     activateDashboardTab: function () {
-        var tabs = document.querySelectorAll('.nav-tab');
+        var tabs = document.querySelectorAll('.bottom-nav-tab');
         tabs.forEach(function (t) {
             t.classList.remove('active');
             if (t.dataset.page === 'dashboard') {
@@ -379,10 +385,36 @@ const DashboardManager = {
      * Update tab aktif saat halaman profil ditampilkan.
      */
     activateProfileTab: function () {
-        var tabs = document.querySelectorAll('.nav-tab');
+        var tabs = document.querySelectorAll('.bottom-nav-tab');
         tabs.forEach(function (t) {
             t.classList.remove('active');
-            if (t.dataset.page === 'profil') {
+            if (t.dataset.page === 'profile') {
+                t.classList.add('active');
+            }
+        });
+    },
+
+    /**
+     * Update tab aktif saat halaman tips ditampilkan.
+     */
+    activateTipsTab: function () {
+        var tabs = document.querySelectorAll('.bottom-nav-tab');
+        tabs.forEach(function (t) {
+            t.classList.remove('active');
+            if (t.dataset.page === 'tips') {
+                t.classList.add('active');
+            }
+        });
+    },
+
+    /**
+     * Update tab aktif saat halaman riwayat ditampilkan.
+     */
+    activateRiwayatTab: function () {
+        var tabs = document.querySelectorAll('.bottom-nav-tab');
+        tabs.forEach(function (t) {
+            t.classList.remove('active');
+            if (t.dataset.page === 'riwayat') {
                 t.classList.add('active');
             }
         });
