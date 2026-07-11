@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Supabase JS Client v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -64,10 +66,84 @@
                     <p class="login-subtitle">Deteksi Dini untuk Hidup yang Lebih Sehat</p>
                     <div class="login-divider"></div>
                     <p class="login-welcome">Silakan masuk untuk melanjutkan</p>
-                    <button class="btn btn-primary" id="btnLogin" type="button">
-                        <i class="fa-solid fa-right-to-bracket"></i> Log In
-                    </button>
-                    <p class="login-hint">Anda akan masuk sebagai <strong>User1</strong></p>
+                    <div class="login-form">
+                        <div class="form-group">
+                            <label for="loginUsername"><i class="fa-solid fa-user"></i> Username</label>
+                            <input type="text" id="loginUsername" class="form-input" placeholder="Masukkan username" autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword"><i class="fa-solid fa-lock"></i> Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="loginPassword" class="form-input" placeholder="Masukkan password" autocomplete="current-password">
+                                <button type="button" class="btn-toggle-password" id="btnToggleLoginPass" aria-label="Tampilkan password">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-full" id="btnLogin" type="button">
+                            <i class="fa-solid fa-right-to-bracket"></i> Log In
+                        </button>
+                        <div class="login-divider-text">
+                            <span>atau</span>
+                        </div>
+                        <button class="btn btn-secondary btn-full" id="btnShowRegister" type="button">
+                            <i class="fa-solid fa-user-plus"></i> Daftar Akun Baru
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== HALAMAN DAFTAR ===== -->
+        <section id="page-register" class="page" aria-label="Daftar">
+            <div class="login-container">
+                <div class="login-card register-card">
+                    <div class="login-icon" aria-hidden="true"><i class="fa-solid fa-user-plus"></i></div>
+                    <h2>Daftar Akun Baru</h2>
+                    <p class="login-subtitle">Buat akun untuk mulai skrining kesehatan ginjal</p>
+                    <div class="login-divider"></div>
+                    <div class="login-form">
+                        <div class="form-group">
+                            <label for="regUsername"><i class="fa-solid fa-user"></i> Username <span class="required">*</span></label>
+                            <input type="text" id="regUsername" class="form-input" placeholder="Username (unique)" autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="regPassword"><i class="fa-solid fa-lock"></i> Password <span class="required">*</span></label>
+                            <div class="password-wrapper">
+                                <input type="password" id="regPassword" class="form-input" placeholder="Minimal 6 karakter" autocomplete="new-password">
+                                <button type="button" class="btn-toggle-password" id="btnToggleRegPass" aria-label="Tampilkan password">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="regNama"><i class="fa-solid fa-id-card"></i> Nama Lengkap <span class="required">*</span></label>
+                            <input type="text" id="regNama" class="form-input" placeholder="Nama lengkap" autocomplete="name">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="regGender"><i class="fa-solid fa-venus-mars"></i> Jenis Kelamin</label>
+                                <select id="regGender" class="form-input form-select">
+                                    <option value="">-- Pilih --</option>
+                                    <option value="Laki-laki">Laki-laki</option>
+                                    <option value="Perempuan">Perempuan</option>
+                                </select>
+                            </div>
+                            <div class="form-group half">
+                                <label for="regTglLahir"><i class="fa-solid fa-calendar"></i> Tanggal Lahir</label>
+                                <input type="date" id="regTglLahir" class="form-input" max="2026-12-31">
+                            </div>
+                        </div>
+                        <button class="btn btn-success btn-full" id="btnRegister" type="button">
+                            <i class="fa-solid fa-user-plus"></i> Daftar Sekarang
+                        </button>
+                        <div class="login-divider-text">
+                            <span>sudah punya akun?</span>
+                        </div>
+                        <button class="btn btn-secondary btn-full" id="btnBackToLogin" type="button">
+                            <i class="fa-solid fa-arrow-left"></i> Kembali ke Login
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -238,7 +314,22 @@
     </div>
 </div>
 
-<!-- JS external: storage, dashboard, dan logika aplikasi -->
+<!-- ===== MODAL NOTIFIKASI (Error / Success) ===== -->
+<div class="modal-overlay" id="notifModalOverlay" role="alertdialog" aria-modal="true" aria-labelledby="notifModalTitle">
+    <div class="modal-content notif-modal">
+        <div class="notif-modal-icon" id="notifModalIcon" aria-hidden="true">
+            <i class="fa-solid fa-circle-exclamation"></i>
+        </div>
+        <h2 id="notifModalTitle">Peringatan</h2>
+        <p class="notif-modal-text" id="notifModalText">Terjadi kesalahan.</p>
+        <div class="modal-actions">
+            <button class="btn btn-primary" id="btnNotifClose" type="button">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- JS external: supabase, storage, dashboard, dan logika aplikasi -->
+<script src="js/supabase.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/dashboard.js"></script>
 <script src="js/app.js"></script>

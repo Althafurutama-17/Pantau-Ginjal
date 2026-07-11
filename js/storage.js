@@ -10,7 +10,7 @@
 const STORAGE_KEY = 'ginjal_screenings';
 
 /**
- * Menyimpan hasil skrining baru ke localStorage.
+ * Menyimpan hasil skrining baru ke localStorage DAN Supabase.
  * @param {Object} result - Data hasil skrining
  * @param {number[]} result.answers - Array 10 nilai jawaban (0-3)
  * @param {number} result.totalScore - Skor total
@@ -18,7 +18,7 @@ const STORAGE_KEY = 'ginjal_screenings';
  * @param {string} result.statusLabel - Label status ('Sehat / Normal', dll)
  * @param {string} result.statusIcon - Icon status ('✅', '⚠️', '🔴')
  */
-function saveScreeningResult(result) {
+async function saveScreeningResult(result) {
     const screenings = getAllScreenings();
 
     const newEntry = {
@@ -34,6 +34,48 @@ function saveScreeningResult(result) {
 
     screenings.push(newEntry);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(screenings));
+
+    // Simpan ke Supabase jika user sudah login
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.id) {
+        try {
+            // Map jawaban ke field screening_data
+            const answers = result.answers;
+            const foamyUrin = answers[2] >= 2; // Q3: urine berbusa
+            const colorMap = { 0: 'normal', 1: 'agak gelap', 2: 'gelap', 3: 'sangat gelap' };
+            const colorUrin = colorMap[answers[2]] || 'normal';
+
+            // Hitung GFR estimasi (simplified - berdasarkan skor)
+            // Dalam aplikasi nyata, GFR dihitung dari data medis
+            const estimatedGFR = Math.max(15, 120 - (result.totalScore * 3));
+
+            // Dipstick data (JSONB)
+            const dipstick = {
+                protein: answers[2] >= 1 ? 'positif' : 'negatif',
+                blood: answers[4] >= 2 ? 'positif' : 'negatif',
+                glucose: 'negatif',
+                answers_snapshot: answers
+            };
+
+            const { error } = await supabaseClient
+                .from('screening_data')
+                .insert({
+                    user_id: currentUser.id,
+                    subjective_foamy_urin: foamyUrin,
+                    subjective_color_urin: colorUrin,
+                    objective_gfr: estimatedGFR,
+                    objective_dipstick: dipstick,
+                    screening_date: new Date().toISOString(),
+                    notes: 'Skor: ' + result.totalScore + '/30 - ' + result.statusLabel
+                });
+
+            if (error) {
+                console.warn('Gagal simpan ke Supabase:', error);
+            }
+        } catch (e) {
+            console.warn('Error simpan ke Supabase:', e);
+        }
+    }
+
     return newEntry;
 }
 

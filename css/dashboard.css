@@ -3,56 +3,6 @@
    File: css/dashboard.css
    ========================================= */
 
-/* ===== DASHBOARD NAVIGATION TABS ===== */
-.dashboard-nav {
-    display: flex;
-    background-color: #f0f6fc;
-    border-bottom: 2px solid #dce8f0;
-    padding: 0 32px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-.nav-tab i {
-    font-size: 1rem;
-}
-
-.nav-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 14px 24px;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #4a5568;
-    background: none;
-    border: none;
-    border-bottom: 3px solid transparent;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    min-height: 56px;
-    font-family: inherit;
-}
-
-.nav-tab:hover {
-    color: #1a7fc4;
-    background-color: #e6f0f9;
-}
-
-.nav-tab:focus-visible {
-    outline: 3px solid #1a7fc4;
-    outline-offset: -3px;
-    border-radius: 4px;
-}
-
-.nav-tab.active {
-    color: #0a5c8a;
-    font-weight: 700;
-    border-bottom-color: #1a7fc4;
-    background-color: transparent;
-}
-
 /* ===== DASHBOARD CARDS ===== */
 .dashboard-section {
     margin-bottom: 28px;
@@ -387,13 +337,6 @@
 
 /* Tablet */
 @media (max-width: 768px) {
-    .dashboard-nav {
-        padding: 0 24px;
-    }
-    .nav-tab {
-        padding: 12px 18px;
-        font-size: 0.95rem;
-    }
     .dashboard-card-body {
         padding: 12px 20px 20px;
     }
@@ -412,15 +355,6 @@
 
 /* Mobile */
 @media (max-width: 600px) {
-    .dashboard-nav {
-        padding: 0 18px;
-        gap: 0;
-    }
-    .nav-tab {
-        padding: 10px 14px;
-        font-size: 0.9rem;
-        min-height: 48px;
-    }
     .dashboard-card-body {
         padding: 10px 16px 18px;
     }
@@ -469,14 +403,6 @@
 
 /* Mobile kecil */
 @media (max-width: 400px) {
-    .dashboard-nav {
-        padding: 0 14px;
-    }
-    .nav-tab {
-        padding: 8px 12px;
-        font-size: 0.85rem;
-        gap: 4px;
-    }
     .dashboard-card-body {
         padding: 8px 14px 16px;
     }
@@ -930,16 +856,196 @@
 
 @media (max-width: 400px) {
     .bottom-nav-tab {
-        min-width: 48px;
-        padding: 5px 6px;
+        min-width: 56px;
+        padding: 6px 8px;
     }
     .bottom-nav-tab i {
         font-size: 1rem;
     }
     .bottom-nav-tab span {
-        font-size: 0.58rem;
+        font-size: 0.6rem;
     }
     .coming-soon-icon {
         font-size: 2.5rem;
+    }
+}
+
+/* ===== FORM ELEMENTS (Login & Register) ===== */
+.login-form {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 6px;
+}
+
+.form-group label i {
+    color: #1a7fc4;
+    margin-right: 4px;
+    width: 16px;
+    text-align: center;
+}
+
+.required {
+    color: #dc3545;
+    font-weight: 700;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 1rem;
+    font-family: inherit;
+    border: 2.5px solid #dce8f0;
+    border-radius: 12px;
+    background-color: #f7fafc;
+    color: #1a1a2e;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    min-height: 48px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #1a7fc4;
+    box-shadow: 0 0 0 3px rgba(26, 127, 196, 0.15);
+    background-color: #ffffff;
+}
+
+.form-input::placeholder {
+    color: #a0aec0;
+}
+
+.form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%234a5568' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    cursor: pointer;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper .form-input {
+    padding-right: 48px;
+}
+
+.btn-toggle-password {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #718096;
+    cursor: pointer;
+    padding: 8px 12px;
+    font-size: 1rem;
+    border-radius: 8px;
+    transition: color 0.2s ease;
+}
+
+.btn-toggle-password:hover {
+    color: #1a7fc4;
+}
+
+.btn-full {
+    width: 100%;
+    min-width: unset;
+}
+
+.form-row {
+    display: flex;
+    gap: 12px;
+}
+
+.form-group.half {
+    flex: 1;
+}
+
+.login-divider-text {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0;
+    color: #a0aec0;
+    font-size: 0.85rem;
+}
+
+.login-divider-text::before,
+.login-divider-text::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: #e2ecf5;
+}
+
+/* ===== NOTIFIKASI MODAL ===== */
+.notif-modal {
+    max-width: 400px;
+    text-align: center;
+}
+
+.notif-modal-icon {
+    font-size: 3.5rem;
+    margin-bottom: 12px;
+}
+
+.notif-modal-icon.notif-error {
+    color: #dc3545;
+}
+
+.notif-modal-icon.notif-success {
+    color: #28a745;
+}
+
+.notif-modal-icon.notif-warning {
+    color: #ffc107;
+}
+
+.notif-modal h2 {
+    font-size: 1.15rem;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.notif-modal-text {
+    font-size: 0.9rem;
+    color: #4a5568;
+    margin-bottom: 20px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+/* ===== REGISTER CARD ===== */
+.register-card {
+    max-width: 420px;
+}
+
+/* ===== RESPONSIVE FORMS ===== */
+@media (max-width: 600px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    .form-group.half {
+        flex: unset;
+    }
+    .form-input {
+        font-size: 16px; /* Prevent iOS zoom */
     }
 }

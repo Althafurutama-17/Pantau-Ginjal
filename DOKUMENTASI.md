@@ -413,3 +413,18 @@ Skor Total = jumlah dari seluruh nilai jawaban (0-3 per pertanyaan)
 > Aplikasi ini hanya memberikan indikasi awal dan bukan merupakan diagnosis medis.  
 > Hasil skrining tidak menggantikan konsultasi langsung dengan tenaga kesehatan profesional.  
 > Jika Anda memiliki keluhan atau kekhawatiran tentang kesehatan ginjal, segera konsultasikan ke dokter.
+
+Notes
+id
+user_name
+password
+
+Nama Lengkap
+Tanggal Lahir
+Jenis Kelamin
+
+subjective_foamy_urin
+subjective_color_urin
+
+objective_gfr
+objective_dipstick

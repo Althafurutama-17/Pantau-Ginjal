@@ -430,22 +430,42 @@ const DashboardManager = {
         var screeningCount = getScreeningCount();
         var latest = getLatestScreening();
 
+        // Ambil data user dari currentUser (Supabase) atau default
+        var namaLengkap = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.namaLengkap : 'User1';
+        var username = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.username : 'user1';
+        var email = (typeof currentUser !== 'undefined' && currentUser && currentUser.email) ? currentUser.email : '-';
+        var jenisKelamin = (typeof currentUser !== 'undefined' && currentUser && currentUser.jenisKelamin) ? currentUser.jenisKelamin : '-';
+        var tglLahir = (typeof currentUser !== 'undefined' && currentUser && currentUser.tanggalLahir) ? currentUser.tanggalLahir : '-';
+        var role = (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'Masyarakat Umum';
+
         container.innerHTML = `
             <div class="profile-info">
                 <div class="profile-avatar">
                     <i class="fa-solid fa-user"></i>
                 </div>
-                <div class="profile-name">User1</div>
-                <div class="profile-role"><i class="fa-solid fa-user-check"></i> Pengguna Terdaftar</div>
+                <div class="profile-name">${namaLengkap}</div>
+                <div class="profile-role"><i class="fa-solid fa-user-check"></i> ${role.charAt(0).toUpperCase() + role.slice(1)}</div>
 
                 <div class="profile-details">
                     <div class="profile-detail-item">
                         <span class="label">Username</span>
-                        <span class="value">user1</span>
+                        <span class="value">${username}</span>
                     </div>
                     <div class="profile-detail-item">
-                        <span class="label">Role</span>
-                        <span class="value">Masyarakat Umum</span>
+                        <span class="label">Email</span>
+                        <span class="value">${email}</span>
+                    </div>
+                    <div class="profile-detail-item">
+                        <span class="label">Nama Lengkap</span>
+                        <span class="value">${namaLengkap}</span>
+                    </div>
+                    <div class="profile-detail-item">
+                        <span class="label">Jenis Kelamin</span>
+                        <span class="value">${jenisKelamin}</span>
+                    </div>
+                    <div class="profile-detail-item">
+                        <span class="label">Tanggal Lahir</span>
+                        <span class="value">${tglLahir !== '-' ? formatDateIndonesia(tglLahir) : '-'}</span>
                     </div>
                     <div class="profile-detail-item">
                         <span class="label">Total Skrining</span>
@@ -462,7 +482,7 @@ const DashboardManager = {
                         <i class="fa-solid fa-right-from-bracket"></i> Log Out
                     </button>
                     <p style="font-size:0.8rem;color:#a0aec0;margin-top:10px;">
-                        Semua data skrining akan dihapus saat logout.
+                        Anda akan keluar dari akun ini.
                     </p>
                 </div>
             </div>

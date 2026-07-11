@@ -140,6 +140,7 @@ const TIPS = {
 
 // ===== STATE APLIKASI =====
 let isLoggedIn = false;  // Status login (false = belum login)
+let currentUser = null;  // Data user yang sedang login
 
 const state = {
     currentPage: 'login',   // 'login' | 'dashboard' | 'questionnaire' | 'result' | 'profile'
@@ -172,11 +173,18 @@ const btnModalConfirm = $('btnModalConfirm');
 const logoutModalOverlay = $('logoutModalOverlay');
 const btnLogoutCancel = $('btnLogoutCancel');
 const btnLogoutConfirm = $('btnLogoutConfirm');
+const registerPage = $('page-register');
+const notifModalOverlay = $('notifModalOverlay');
+const notifModalIcon = $('notifModalIcon');
+const notifModalTitle = $('notifModalTitle');
+const notifModalText = $('notifModalText');
+const btnNotifClose = $('btnNotifClose');
 
 // ===== FUNGSI NAVIGASI HALAMAN =====
 function showPage(pageName) {
     // Sembunyikan semua halaman
     loginPage.classList.remove('active');
+    registerPage.classList.remove('active');
     homePage.classList.remove('active');
     dashboardPage.classList.remove('active');
     profilePage.classList.remove('active');
@@ -191,6 +199,9 @@ function showPage(pageName) {
 
     if (pageName === 'login') {
         loginPage.classList.add('active');
+        progressSection.classList.remove('visible');
+    } else if (pageName === 'register') {
+        registerPage.classList.add('active');
         progressSection.classList.remove('visible');
     } else if (pageName === 'dashboard') {
         dashboardPage.classList.add('active');
@@ -501,13 +512,13 @@ modalOverlay.addEventListener('keydown', function (e) {
 });
 
 // ===== MENAMPILKAN HALAMAN HASIL (dari state saat ini) =====
-function showResult() {
+async function showResult() {
     const skor = hitungSkor();
     const status = tentukanStatus(skor);
     const tipsList = TIPS[status.key];
 
-    // Simpan ke localStorage
-    saveScreeningResult({
+    // Simpan ke localStorage + Supabase
+    await saveScreeningResult({
         answers: state.answers,
         totalScore: skor,
         status: status.key,
@@ -595,10 +606,220 @@ function restartApp() {
     }, 200);
 }
 
-// ===== FUNGSI LOGIN =====
-function login() {
-    isLoggedIn = true;
-    showPage('dashboard');
+// ===== FUNGSI NOTIFIKASI =====
+function showNotif(type, title, message) {
+    notifModalTitle.textContent = title;
+    notifModalText.textContent = message;
+    if (type === 'error') {
+        notifModalIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+        notifModalIcon.className = 'notif-modal-icon notif-error';
+    } else if (type === 'success') {
+        notifModalIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        notifModalIcon.className = 'notif-modal-icon notif-success';
+    } else {
+        notifModalIcon.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+        notifModalIcon.className = 'notif-modal-icon notif-warning';
+    }
+    notifModalOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => btnNotifClose.focus(), 200);
+}
+
+btnNotifClose.addEventListener('click', function () {
+    notifModalOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+});
+
+notifModalOverlay.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        notifModalOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+});
+
+// ===== FUNGSI LOGIN (Supabase Auth) =====
+async function login() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    if (!username || !password) {
+        showNotif('error', 'Login Gagal', 'Masukkan username dan password!');
+        return;
+    }
+
+    var btnLogin = document.getElementById('btnLogin');
+    var originalHTML = btnLogin.innerHTML;
+    btnLogin.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+    btnLogin.disabled = true;
+
+    try {
+        // Cari email berdasarkan username di tabel users
+        const { data: userProfile, error: lookupError } = await supabaseClient
+            .from('users')
+            .select('*')
+            .eq('user_name', username)
+            .maybeSingle();
+
+        if (lookupError || !userProfile) {
+            showNotif('error', 'Login Gagal', 'Username tidak ditemukan!');
+            btnLogin.innerHTML = originalHTML;
+            btnLogin.disabled = false;
+            return;
+        }
+
+        // Login ke Supabase Auth menggunakan email dummy dari username
+        // Tabel users tidak punya kolom email, jadi generate dari username
+        const authEmail = usernameToEmail(username);
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: authEmail,
+            password: password
+        });
+
+        if (error) {
+            showNotif('error', 'Login Gagal', 'Password salah!');
+            btnLogin.innerHTML = originalHTML;
+            btnLogin.disabled = false;
+            return;
+        }
+
+        // Simpan data user ke state
+        currentUser = {
+            id: data.user.id,
+            username: userProfile.user_name,
+            email: authEmail,
+            namaLengkap: userProfile.nama_lengkap,
+            tanggalLahir: userProfile.tanggal_lahir,
+            jenisKelamin: userProfile.jenis_kelamin,
+            role: userProfile.role
+        };
+
+        isLoggedIn = true;
+        btnLogin.innerHTML = originalHTML;
+        btnLogin.disabled = false;
+
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+
+        showPage('dashboard');
+    } catch (e) {
+        console.error('Login error:', e);
+        showNotif('error', 'Kesalahan', 'Terjadi kesalahan saat login. Periksa koneksi internet Anda.');
+        btnLogin.innerHTML = originalHTML;
+        btnLogin.disabled = false;
+    }
+}
+
+// ===== FUNGSI REGISTER (Supabase Auth + users table) =====
+async function register() {
+    const username = document.getElementById('regUsername').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const namaLengkap = document.getElementById('regNama').value.trim();
+    const jenisKelamin = document.getElementById('regGender').value;
+    const tglLahir = document.getElementById('regTglLahir').value;
+
+    // Validasi
+    if (!username || !password || !namaLengkap) {
+        showNotif('error', 'Registrasi Gagal', 'Semua kolom bertanda * wajib diisi!');
+        return;
+    }
+    if (username.length < 3) {
+        showNotif('error', 'Registrasi Gagal', 'Username minimal 3 karakter!');
+        return;
+    }
+    if (password.length < 6) {
+        showNotif('error', 'Registrasi Gagal', 'Password minimal 6 karakter!');
+        return;
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        showNotif('error', 'Registrasi Gagal', 'Username hanya boleh huruf, angka, dan underscore!');
+        return;
+    }
+
+    var btnRegister = document.getElementById('btnRegister');
+    var originalHTML = btnRegister.innerHTML;
+    btnRegister.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mendaftarkan...';
+    btnRegister.disabled = true;
+
+    try {
+        // Cek unique username
+        const { data: existingUser } = await supabaseClient
+            .from('users')
+            .select('id')
+            .eq('user_name', username)
+            .maybeSingle();
+
+        if (existingUser) {
+            showNotif('error', 'Registrasi Gagal', 'Username sudah digunakan! Pilih username lain.');
+            btnRegister.innerHTML = originalHTML;
+            btnRegister.disabled = false;
+            return;
+        }
+
+        // Daftar ke Supabase Auth menggunakan email dummy dari username
+        // (konsisten dengan login yang menggunakan usernameToEmail)
+        const authEmail = usernameToEmail(username);
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+            email: authEmail,
+            password: password
+        });
+
+        if (authError) {
+            console.error('Auth signup error:', authError);
+            if (authError.message.includes('already')) {
+                showNotif('error', 'Registrasi Gagal', 'Username sudah terdaftar di sistem!');
+            } else {
+                showNotif('error', 'Registrasi Gagal', 'Gagal membuat akun. Silakan coba lagi.');
+            }
+            btnRegister.innerHTML = originalHTML;
+            btnRegister.disabled = false;
+            return;
+        }
+
+        // Simpan data profil ke tabel users
+        // Kolom email tidak ada di tabel users, jadi tidak diinsert
+        const { error: insertError } = await supabaseClient
+            .from('users')
+            .insert({
+                id: authData.user.id,
+                user_name: username,
+                password_hash: '',
+                nama_lengkap: namaLengkap,
+                tanggal_lahir: tglLahir || null,
+                jenis_kelamin: jenisKelamin || null,
+                role: 'user',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            });
+
+        if (insertError) {
+            console.error('Insert profile error:', insertError);
+            showNotif('error', 'Registrasi Gagal', 'Gagal menyimpan data profil. Silakan coba lagi.');
+            btnRegister.innerHTML = originalHTML;
+            btnRegister.disabled = false;
+            return;
+        }
+
+        // Berhasil
+        showNotif('success', 'Registrasi Berhasil!', 'Akun berhasil dibuat. Silakan login dengan akun Anda.');
+
+        // Bersihkan form
+        document.getElementById('regUsername').value = '';
+        document.getElementById('regPassword').value = '';
+        document.getElementById('regNama').value = '';
+        document.getElementById('regGender').value = '';
+        document.getElementById('regTglLahir').value = '';
+
+        btnRegister.innerHTML = originalHTML;
+        btnRegister.disabled = false;
+
+        // Pindah ke halaman login
+        setTimeout(() => showPage('login'), 1500);
+    } catch (e) {
+        console.error('Register error:', e);
+        showNotif('error', 'Kesalahan', 'Terjadi kesalahan saat registrasi. Periksa koneksi internet Anda.');
+        btnRegister.innerHTML = originalHTML;
+        btnRegister.disabled = false;
+    }
 }
 
 // ===== FUNGSI LOGOUT =====
@@ -620,16 +841,20 @@ btnLogoutCancel.addEventListener('click', function () {
 });
 
 // ===== KONFIRMASI LOGOUT: PROSES KELUAR =====
-btnLogoutConfirm.addEventListener('click', function () {
+btnLogoutConfirm.addEventListener('click', async function () {
     logoutModalOverlay.classList.remove('active');
     document.body.style.overflow = '';
 
-    // Hapus semua data
+    // Sign out dari Supabase
+    await supabaseClient.auth.signOut();
+
+    // Hapus semua data local
     clearAllData();
     clearPartialQuestionnaire();
 
     // Reset state
     isLoggedIn = false;
+    currentUser = null;
     state.currentQuestion = 0;
     state.answers = new Array(10).fill(null);
     progressFill.style.width = '0%';
@@ -655,6 +880,76 @@ document.addEventListener('DOMContentLoaded', function () {
     var btnLogin = document.getElementById('btnLogin');
     if (btnLogin) {
         btnLogin.addEventListener('click', login);
+    }
+
+    // Event listener tombol "Daftar"
+    var btnShowRegister = document.getElementById('btnShowRegister');
+    if (btnShowRegister) {
+        btnShowRegister.addEventListener('click', function () {
+            showPage('register');
+        });
+    }
+
+    // Event listener tombol "Kembali ke Login"
+    var btnBackToLogin = document.getElementById('btnBackToLogin');
+    if (btnBackToLogin) {
+        btnBackToLogin.addEventListener('click', function () {
+            showPage('login');
+        });
+    }
+
+    // Event listener tombol "Daftar Sekarang"
+    var btnRegister = document.getElementById('btnRegister');
+    if (btnRegister) {
+        btnRegister.addEventListener('click', register);
+    }
+
+    // Password toggle — Login
+    var btnToggleLoginPass = document.getElementById('btnToggleLoginPass');
+    if (btnToggleLoginPass) {
+        btnToggleLoginPass.addEventListener('click', function () {
+            var input = document.getElementById('loginPassword');
+            var icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        });
+    }
+
+    // Password toggle — Register
+    var btnToggleRegPass = document.getElementById('btnToggleRegPass');
+    if (btnToggleRegPass) {
+        btnToggleRegPass.addEventListener('click', function () {
+            var input = document.getElementById('regPassword');
+            var icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        });
+    }
+
+    // Enter key on login fields
+    var loginPass = document.getElementById('loginPassword');
+    if (loginPass) {
+        loginPass.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') login();
+        });
+    }
+
+    // Enter key on register button
+    var regPass = document.getElementById('regPassword');
+    if (regPass) {
+        regPass.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') register();
+        });
     }
 
     // Event listener bottom navigation
