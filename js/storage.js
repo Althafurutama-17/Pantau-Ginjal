@@ -22,7 +22,7 @@ const OBJECTIVE_KEYS = [
     'obj_blood_glucose', 'obj_cholesterol', 'obj_hemoglobin', 'obj_measurement_date'
 ];
 
-const ALL_SELECT_COLUMNS = [...SUBJECTIVE_KEYS, ...OBJECTIVE_KEYS, 'id', 'user_id', 'screening_date', 'hasil'].join(', ');
+const ALL_SELECT_COLUMNS = [...SUBJECTIVE_KEYS, ...OBJECTIVE_KEYS, 'id', 'user_id', 'screening_date', 'hasil', 'hasil_sbj', 'hasil_obj'].join(', ');
 
 /**
  * Map answers object → kolom Supabase.
@@ -108,7 +108,43 @@ function mapAnswersToDisplay(answers) {
 // ===== FUNGSI UTAMA — SUPABASE =====
 
 /**
- * Generate object hasil berdasarkan skor.
+ * Generate object hasil parsial berdasarkan skor satu jenis (subjektif atau objektif).
+ * Menggunakan persentase karena max subjektif (20) dan objektif (15) berbeda.
+ * @param {number} skor - Skor jenis tersebut
+ * @param {number} totalMaksimal - Total maksimal (20 untuk subjektif, 15 untuk objektif)
+ * @param {string} type - 'subjektif' atau 'objektif'
+ */
+function generateHasilPartial(skor, totalMaksimal, type) {
+    const pct = (skor / totalMaksimal) * 100;
+    let status, statusLabel, statusIcon, level, deskripsi;
+
+    if (pct <= 25) {
+        status = 'sehat'; statusLabel = 'Sehat'; statusIcon = '✅'; level = 1;
+        deskripsi = type === 'subjektif'
+            ? 'Kondisi ginjal tampak normal berdasarkan gejala yang dilaporkan.'
+            : 'Parameter pemeriksaan dalam batas normal.';
+    } else if (pct <= 50) {
+        status = 'waspada'; statusLabel = 'Waspada'; statusIcon = '⚠️'; level = 2;
+        deskripsi = type === 'subjektif'
+            ? 'Terdapat beberapa gejala yang perlu diperhatikan. Konsultasikan ke dokter.'
+            : 'Beberapa parameter menunjukkan penyimpangan. Perlu evaluasi lebih lanjut.';
+    } else if (pct <= 75) {
+        status = 'risiko_tinggi'; statusLabel = 'Risiko Tinggi'; statusIcon = '🔴'; level = 3;
+        deskripsi = type === 'subjektif'
+            ? 'Gejala yang dilaporkan menunjukkan risiko tinggi gangguan ginjal.'
+            : 'Beberapa parameter menunjukkan abnormalitas signifikan.';
+    } else {
+        status = 'gawat_darurat'; statusLabel = 'Gawat Darurat'; statusIcon = '🚨'; level = 4;
+        deskripsi = type === 'subjektif'
+            ? 'Gejala yang dilaporkan sangat mengkhawatirkan. Segera periksakan ke dokter.'
+            : 'Parameter pemeriksaan menunjukkan kondisi darurat.';
+    }
+
+    return { skor, total_maksimal: totalMaksimal, status, statusLabel, statusIcon, level, deskripsi };
+}
+
+/**
+ * Generate object hasil berdasarkan skor gabungan.
  * Disimpan sebagai TEXT (JSON.stringify) di kolom 'hasil' Supabase.
  */
 function generateHasil(skor, skorSubjektif, skorObjektif) {
@@ -152,63 +188,100 @@ function parseHasil(hasil) {
  * @returns {Object|null}
  */
 async function saveScreeningResult(result) {
+    console.log('[saveScreeningResult] currentUser:', currentUser ? currentUser.id : 'NULL');
+    console.log('[saveScreeningResult] result:', result);
+
     if (typeof currentUser === 'undefined' || !currentUser || !currentUser.id) {
-        console.warn('User belum login, data tidak disimpan ke Supabase');
+        console.warn('[saveScreeningResult] User belum login, data tidak disimpan ke Supabase');
         return null;
     }
 
     try {
         const subjData = mapAnswersToSupabase(result.answers);
         const objData = result.objectiveData ? mapObjectiveToSupabase(result.objectiveData) : {};
-        const hasilObj = generateHasil(result.totalScore, result.skorSubjektif, result.skorObjektif);
-        const hasilText = JSON.stringify(hasilObj);
+
+        // Hitung skor dari data yang tersedia
+        const skorSbj = result.skorSubjektif || hitungSkorFromAnswers(result.answers);
+        const skorObj = result.skorObjektif || 0;
+        const totalSkor = skorSbj + skorObj;
+
+        // Generate HASIL GABUNGAN (sumber kebenaran utama)
+        const hasilGabungan = generateHasil(totalSkor, skorSbj, skorObj);
+        const hasilText = JSON.stringify(hasilGabungan);
+
+        // Generate HASIL PARSIAL (untuk tampilan parsial)
+        const hasilSbj = generateHasilPartial(skorSbj, 20, 'subjektif');
+        const hasilSbjText = JSON.stringify(hasilSbj);
+
+        let hasilObjText = null;
+        if (result.objectiveData) {
+            hasilObjText = JSON.stringify(generateHasilPartial(skorObj, 15, 'objektif'));
+        }
+
+        console.log('[saveScreeningResult] skorSbj:', skorSbj, 'skorObj:', skorObj, 'total:', totalSkor);
+        console.log('[saveScreeningResult] hasil_obj:', hasilObjText);
+
         const now = new Date().toISOString();
 
-        // Cek apakah user sudah punya data screening
-        const { data: existing } = await supabaseClient
-            .from('screening_data')
-            .select('id')
-            .eq('user_id', currentUser.id)
-            .limit(1)
-            .maybeSingle();
+        // Ambil hasil_obj lama dari baris sebelumnya (untuk dipertahankan jika user skip)
+        let oldHasilObj = null;
+        try {
+            const oldRes = await supabaseClient
+                .from('screening_data')
+                .select('hasil_obj')
+                .eq('user_id', currentUser.id)
+                .order('screening_date', { ascending: false })
+                .limit(1);
+            if (oldRes.data && oldRes.data.length > 0 && oldRes.data[0].hasil_obj) {
+                oldHasilObj = oldRes.data[0].hasil_obj;
+                console.log('[saveScreeningResult] Ditemukan hasil_obj lama');
+            }
+        } catch (e) {
+            console.warn('[saveScreeningResult] Gagal ambil hasil_obj lama:', e);
+        }
 
         let data, error;
-        const saveData = { ...subjData, ...objData, hasil: hasilText, screening_date: now };
+        let finalHasilObjText = hasilObjText;
 
-        if (existing) {
-            // UPDATE — ganti data lama dengan data baru
-            const res = await supabaseClient
-                .from('screening_data')
-                .update(saveData)
-                .eq('id', existing.id)
-                .select()
-                .single();
-            data = res.data;
-            error = res.error;
+        // FIX BUG: Jika user skip objektif (hasilObjText = null) tapi data lama ada,
+        // pertahankan data lama agar tidak hilang
+        if (!finalHasilObjText && oldHasilObj) {
+            finalHasilObjText = oldHasilObj;
+            console.log('[saveScreeningResult] Pertahankan hasil_obj lama');
+        }
+
+        const saveData = { ...subjData, ...objData, hasil: hasilText, hasil_sbj: hasilSbjText, hasil_obj: finalHasilObjText, screening_date: now };
+
+        // Selalu INSERT baris baru (riwayat)
+        console.log('[saveScreeningResult] INSERT baru');
+        const res = await supabaseClient
+            .from('screening_data')
+            .insert({ user_id: currentUser.id, ...saveData });
+        error = res.error;
+        if (!error) {
+            data = { id: null, ...saveData };
+            console.log('[saveScreeningResult] INSERT berhasil, hasil_obj:', finalHasilObjText ? 'ADA' : 'NULL');
         } else {
-            // INSERT — buat baris baru
-            const res = await supabaseClient
-                .from('screening_data')
-                .insert({ user_id: currentUser.id, ...saveData })
-                .select()
-                .single();
-            data = res.data;
-            error = res.error;
+            console.error('[saveScreeningResult] INSERT gagal:', error);
         }
 
         if (error) {
-            console.warn('Gagal simpan ke Supabase:', error);
+            console.warn('[saveScreeningResult] Gagal simpan ke Supabase:', error);
             return null;
         }
 
+        console.log('[saveScreeningResult] Berhasil simpan! data.id:', data ? data.id : 'null');
+
         return {
-            id: data.id,
+            id: data ? data.id : null,
             ...result,
-            hasil: hasilObj,
-            screeningDate: data.screening_date
+            hasil: hasilGabungan,
+            hasilSbj: hasilSbj,
+            hasilObj: hasilObjText ? JSON.parse(hasilObjText) : null,
+            screeningDate: now
         };
     } catch (e) {
-        console.warn('Error simpan ke Supabase:', e);
+        console.error('[saveScreeningResult] Error:', e.message, e);
         return null;
     }
 }
@@ -234,6 +307,8 @@ async function getAllScreenings() {
             const answers = mapSupabaseToAnswers(row);
             const objData = mapSupabaseToObjective(row);
             const hasilParsed = parseHasil(row.hasil);
+            const hasilSbjParsed = parseHasil(row.hasil_sbj);
+            const hasilObjParsed = parseHasil(row.hasil_obj);
 
             if (hasilParsed) {
                 return {
@@ -248,7 +323,9 @@ async function getAllScreenings() {
                     statusIcon: hasilParsed.statusIcon,
                     level: hasilParsed.level,
                     deskripsi: hasilParsed.deskripsi,
-                    screeningDate: row.screening_date
+                    screeningDate: row.screening_date,
+                    hasilSbj: hasilSbjParsed,
+                    hasilObj: hasilObjParsed
                 };
             }
 
@@ -259,7 +336,9 @@ async function getAllScreenings() {
                 status: tentukanStatusKey(score),
                 statusLabel: tentukanStatusLabel(score),
                 statusIcon: tentukanStatusIcon(score),
-                screeningDate: row.screening_date
+                screeningDate: row.screening_date,
+                hasilSbj: hasilSbjParsed,
+                hasilObj: hasilObjParsed
             };
         });
     } catch (e) { console.warn('Error:', e); return []; }
@@ -287,6 +366,8 @@ async function getLatestScreening() {
         const answers = mapSupabaseToAnswers(data);
         const objData = mapSupabaseToObjective(data);
         const hasilParsed = parseHasil(data.hasil);
+        const hasilSbjParsed = parseHasil(data.hasil_sbj);
+        const hasilObjParsed = parseHasil(data.hasil_obj);
 
         if (hasilParsed) {
             return {
@@ -301,7 +382,9 @@ async function getLatestScreening() {
                 statusIcon: hasilParsed.statusIcon,
                 level: hasilParsed.level,
                 deskripsi: hasilParsed.deskripsi,
-                screeningDate: data.screening_date
+                screeningDate: data.screening_date,
+                hasilSbj: hasilSbjParsed,
+                hasilObj: hasilObjParsed
             };
         }
 
@@ -312,7 +395,9 @@ async function getLatestScreening() {
             status: tentukanStatusKey(score),
             statusLabel: tentukanStatusLabel(score),
             statusIcon: tentukanStatusIcon(score),
-            screeningDate: data.screening_date
+            screeningDate: data.screening_date,
+            hasilSbj: hasilSbjParsed,
+            hasilObj: hasilObjParsed
         };
     } catch (e) { return null; }
 }

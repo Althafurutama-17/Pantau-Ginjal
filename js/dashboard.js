@@ -140,59 +140,155 @@ const DashboardManager = {
     },
 
     /**
-     * Merender kartu Status Kesehatan.
+     * Merender kartu Status Kesehatan — 4 kondisi:
+     * 1. Belum ada data → tombol Mulai Kuesioner + Input Pemeriksaan
+     * 2. Hanya subjektif → badge warning + skor Sbj + tombol Lihat Hasil + Input Objektif
+     * 3. Hanya objektif → badge warning + skor Obj + tombol Lihat Hasil + Isi Kuesioner
+     * 4. Lengkap → badge status + total skor + detail + tombol Lihat Hasil Lengkap
      * @param {Object|null} screening - Data screening terakhir atau null
      */
     renderHealthStatus: function (screening) {
         const container = document.getElementById('dashboard-health-status');
         if (!container) return;
 
+        // Kondisi 1: Belum ada data sama sekali
         if (!screening) {
-            // Belum pernah skrining
             container.innerHTML = `
                 <div class="health-status">
                     <div class="health-status-icon"><i class="fa-solid fa-stethoscope"></i></div>
-                    <span class="health-badge status-belum" role="status">❌ Belum Pernah Skrining</span>
-                    <p class="health-empty-text">Anda belum pernah melakukan skrining kesehatan ginjal. Yuk, mulai deteksi dini sekarang!</p>
+                    <span class="health-badge status-belum" role="status">📭 Belum Ada Data Skrining</span>
+                    <p class="health-empty-text">Lakukan skrining untuk mengetahui status kesehatan ginjal Anda.</p>
                     <div class="health-actions">
                         <button class="btn btn-primary" id="dashboard-btn-start" type="button">
                             Mulai Kuesioner →
                         </button>
+                        <button class="btn btn-secondary" id="dashboard-btn-obj-start" type="button">
+                            Input Pemeriksaan
+                        </button>
                     </div>
                 </div>
             `;
-            // Event listener untuk tombol "Mulai Kuesioner"
             const btnStart = document.getElementById('dashboard-btn-start');
             if (btnStart) {
                 btnStart.addEventListener('click', function () {
                     window.startQuestionnaire && window.startQuestionnaire();
                 });
             }
-        } else {
-            // Sudah pernah skrining
-            const statusClass = 'status-' + screening.status;
-            const deskripsi = screening.deskripsi || '';
+            const btnObjStart = document.getElementById('dashboard-btn-obj-start');
+            if (btnObjStart) {
+                btnObjStart.addEventListener('click', function () {
+                    window.renderObjectiveForm && window.renderObjectiveForm();
+                });
+            }
+            return;
+        }
+
+        const hasSbj = screening.hasilSbj && screening.hasilSbj !== null;
+        const hasObj = screening.hasilObj && screening.hasilObj !== null;
+
+        // Kondisi 2: Hanya subjektif (hasil_sbj ada, hasil_obj NULL)
+        if (hasSbj && !hasObj) {
+            const sbj = screening.hasilSbj;
+            const skorSbj = sbj.skor || screening.skorSubjektif || 0;
+            const statusIcon = sbj.statusIcon || '⚠️';
+            const statusLabel = sbj.status || 'Waspada';
             container.innerHTML = `
                 <div class="health-status">
-                    <div class="health-status-icon">${screening.statusIcon}</div>
-                    <span class="health-badge ${statusClass}" role="status">${screening.statusIcon} ${screening.statusLabel}</span>
-                    <p class="health-info">Skor: <strong>${screening.totalScore}</strong> dari 35</p>
-                    ${deskripsi ? '<p class="health-deskripsi">' + deskripsi + '</p>' : ''}
-                    <p class="health-info">Terakhir skrining: <strong>${formatDateIndonesia(screening.screeningDate)}</strong></p>
+                    <div class="health-badge status-waspada" role="status">⚠️ Data Belum Lengkap</div>
+                    <div class="health-status-icon">${statusIcon}</div>
+                    <p class="health-info" style="font-size:1.1rem;color:#1a1a2e;"><strong>${sbj.statusLabel || statusLabel}</strong></p>
+                    <div class="status-note">
+                        📌 Lengkapi dengan data checkup medis untuk hasil yang lebih akurat.
+                    </div>
                     <div class="health-actions">
-                        <button class="btn btn-secondary" id="dashboard-btn-detail" type="button">
-                            Lihat Detail Hasil →
+                        <button class="btn btn-primary" id="dashboard-btn-partial-sbj" type="button">
+                            Lihat Hasil Sementara
+                        </button>
+                        <button class="btn btn-secondary" id="dashboard-btn-add-obj" type="button">
+                            Isi Data Checkup Medis →
                         </button>
                     </div>
                 </div>
             `;
-            // Event listener untuk tombol "Lihat Detail Hasil"
-            const btnDetail = document.getElementById('dashboard-btn-detail');
-            if (btnDetail) {
-                btnDetail.addEventListener('click', function () {
-                    window.showLastResult && window.showLastResult();
+            const btnPartialSbj = document.getElementById('dashboard-btn-partial-sbj');
+            if (btnPartialSbj) {
+                btnPartialSbj.addEventListener('click', function () {
+                    window.showResultPartial && window.showResultPartial('sbj');
                 });
             }
+            const btnAddObj = document.getElementById('dashboard-btn-add-obj');
+            if (btnAddObj) {
+                btnAddObj.addEventListener('click', function () {
+                    window.renderObjectiveForm && window.renderObjectiveForm();
+                });
+            }
+            return;
+        }
+
+        // Kondisi 3: Hanya objektif (hasil_obj ada, hasil_sbj NULL)
+        if (!hasSbj && hasObj) {
+            const obj = screening.hasilObj;
+            const skorObj = obj.skor || screening.skorObjektif || 0;
+            const statusIcon = obj.statusIcon || '⚠️';
+            const statusLabel = obj.status || 'Waspada';
+            container.innerHTML = `
+                <div class="health-status">
+                    <div class="health-badge status-waspada" role="status">⚠️ Data Belum Lengkap</div>
+                    <div class="health-status-icon">${statusIcon}</div>
+                    <p class="health-info" style="font-size:1.1rem;color:#1a1a2e;"><strong>${obj.statusLabel || statusLabel}</strong></p>
+                    <div class="status-note">
+                        📌 Lengkapi dengan kuesioner (subjektif) untuk hasil yang lebih akurat.
+                    </div>
+                    <div class="health-actions">
+                        <button class="btn btn-primary" id="dashboard-btn-partial-obj" type="button">
+                            Lihat Hasil Sementara
+                        </button>
+                        <button class="btn btn-secondary" id="dashboard-btn-start-sbj" type="button">
+                            Isi Kuesioner →
+                        </button>
+                    </div>
+                </div>
+            `;
+            const btnPartialObj = document.getElementById('dashboard-btn-partial-obj');
+            if (btnPartialObj) {
+                btnPartialObj.addEventListener('click', function () {
+                    window.showResultPartial && window.showResultPartial('obj');
+                });
+            }
+            const btnStartSbj = document.getElementById('dashboard-btn-start-sbj');
+            if (btnStartSbj) {
+                btnStartSbj.addEventListener('click', function () {
+                    window.startQuestionnaire && window.startQuestionnaire();
+                });
+            }
+            return;
+        }
+
+        // Kondisi 4: Keduanya terisi (lengkap) — atau fallback jika tidak ada data parsial
+        const statusClass = 'status-' + screening.status;
+        const deskripsi = screening.deskripsi || '';
+        const skorSub = screening.skorSubjektif || (hasSbj ? screening.hasilSbj.skor : 0);
+        const skorObj = screening.skorObjektif || (hasObj ? screening.hasilObj.skor : 0);
+        const skorTotal = screening.totalScore || (skorSub + skorObj);
+
+        container.innerHTML = `
+            <div class="health-status">
+                <div class="health-status-icon">${screening.statusIcon}</div>
+                <span class="health-badge ${statusClass}" role="status">${screening.statusIcon} ${screening.statusLabel}</span>
+                ${deskripsi ? '<p class="health-deskripsi">' + deskripsi + '</p>' : ''}
+                <p class="health-info">Terakhir skrining: <strong>${formatDateIndonesia(screening.screeningDate)}</strong></p>
+                <div class="health-actions">
+                    <button class="btn btn-primary" id="dashboard-btn-detail" type="button">
+                        Lihat Hasil Lengkap →
+                    </button>
+                </div>
+            </div>
+        `;
+        const btnDetail = document.getElementById('dashboard-btn-detail');
+        if (btnDetail) {
+            btnDetail.addEventListener('click', function () {
+                window.showResultPartial && window.showResultPartial('full');
+            });
         }
     },
 
@@ -300,7 +396,7 @@ const DashboardManager = {
                         ${od.obj_urine_glucose ? '<div class="health-obj-item"><span class="label">Glukosa Urine</span><span class="value">' + od.obj_urine_glucose + '</span></div>' : ''}
                     </div>
                     <button class="btn btn-primary" id="dashboard-btn-obj-edit" type="button" style="margin-top:12px;">
-                        <i class="fa-solid fa-pen"></i> Perbarui Data Objektif
+                        <i class="fa-solid fa-pen"></i> Perbarui Data Checkup Medis
                     </button>
                 </div>
             `;
@@ -314,7 +410,7 @@ const DashboardManager = {
                         Masukkan hasil pemeriksaan dari Puskesmas/Klinik (Tekanan Darah, Gula Darah, Kolesterol, dsb)
                     </p>
                     <button class="btn btn-primary" id="dashboard-btn-obj-add" type="button">
-                        <i class="fa-solid fa-flask"></i> Isi Data Objektif →
+                        <i class="fa-solid fa-flask"></i> Isi Data Checkup Medis →
                     </button>
                 </div>
             `;

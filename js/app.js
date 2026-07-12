@@ -366,6 +366,7 @@ window.startQuestionnaire = startQuestionnaire;
 window.resumeQuestionnaire = resumeQuestionnaire;
 window.showLastResult = showLastResult;
 window.renderObjectiveForm = renderObjectiveForm;
+window.showResultPartial = showResultPartial;
 
 // ===== RENDER PERTANYAAN =====
 function renderQuestion() {
@@ -483,6 +484,260 @@ function tentukanStatus(skor) {
     }
 }
 
+// ===== FUNGSI HITUNG SKOR OBJEKTIF =====
+/**
+ * Hitung skor objektif dari data pemeriksaan.
+ * Skor 0–3 per parameter, total max = 15.
+ * @param {Object} objData - Data objektif
+ * @param {string} gender - 'Laki-laki' atau 'Perempuan'
+ * @returns {number} Skor objektif (0-15)
+ */
+function hitungSkorObjektif(objData, gender) {
+    if (!objData) return 0;
+    let skor = 0;
+
+    // 1. Tekanan Darah (sistolik + diastolik) — max 3
+    const sys = objData.obj_systolic_bp;
+    const dia = objData.obj_diastolic_bp;
+    if (sys && dia) {
+        if (sys <= 120 && dia <= 80) skor += 0;          // Normal (≤120/80)
+        else if (sys <= 129 && dia < 80) skor += 1;      // Elevated (≤129/<80)
+        else if (sys <= 139 && dia <= 89) skor += 2;     // High Stage 1 (≤139/≤89)
+        else skor += 3;                                    // High Stage 2 / Crisis (≥140/≥90)
+    }
+
+    // 2. Protein Urine — max 3
+    const protein = objData.obj_urine_protein;
+    if (protein) {
+        if (protein === 'Negatif') skor += 0;
+        else if (protein === '+1') skor += 2;
+        else skor += 3; // +2 atau +3
+    }
+
+    // 3. Glukosa Urine — max 3
+    const glucose = objData.obj_urine_glucose;
+    if (glucose) {
+        if (glucose === 'Negatif') skor += 0;
+        else if (glucose === '+1') skor += 1;
+        else if (glucose === '+2') skor += 2;
+        else skor += 3; // +3
+    }
+
+    // 4. Gula Darah — max 3
+    const bg = objData.obj_blood_glucose;
+    if (bg) {
+        if (bg < 100) skor += 0;           // Normal
+        else if (bg < 126) skor += 1;      // Pre-diabetes
+        else if (bg < 200) skor += 2;      // Diabetes
+        else skor += 3;                     // Diabetes berat
+    }
+
+    // 5. Kolesterol — max 3
+    const chol = objData.obj_cholesterol;
+    if (chol) {
+        if (chol < 200) skor += 0;         // Normal
+        else if (chol < 240) skor += 1;    // Borderline
+        else if (chol < 280) skor += 2;    // Tinggi
+        else skor += 3;                     // Sangat tinggi
+    }
+
+    // 6. Hemoglobin — max 3 (threshold sesuai gender)
+    const hb = objData.obj_hemoglobin;
+    if (hb) {
+        const normalMin = (gender === 'Perempuan') ? 12 : 13;
+        if (hb >= normalMin) skor += 0;              // Normal
+        else if (hb >= normalMin - 1) skor += 1;     // Borderline
+        else if (hb >= normalMin - 3) skor += 2;     // Anemia ringan
+        else skor += 3;                               // Anemia berat
+    }
+
+    return skor;
+}
+
+// ===== FUNGSI STATUS BERDASARKAN PERSENTASE =====
+/**
+ * Tentukan status berdasarkan persentase skor.
+ * Digunakan untuk scoring parsial (subjektif atau objektif saja).
+ * @param {number} skor - Skor aktual
+ * @param {number} totalMaksimal - Total maksimal skor
+ * @returns {Object} { key, label, icon, color }
+ */
+function tentukanStatusFromScore(skor, totalMaksimal) {
+    const pct = (skor / totalMaksimal) * 100;
+    if (pct <= 25) return { key: 'sehat', label: 'Sehat', icon: '<i class="fa-solid fa-circle-check"></i>', color: 'sehat' };
+    if (pct <= 50) return { key: 'waspada', label: 'Waspada', icon: '<i class="fa-solid fa-triangle-exclamation"></i>', color: 'waspada' };
+    if (pct <= 75) return { key: 'risiko_tinggi', label: 'Risiko Tinggi', icon: '<i class="fa-solid fa-circle-exclamation"></i>', color: 'risiko_tinggi' };
+    return { key: 'gawat_darurat', label: 'Gawat Darurat', icon: '<i class="fa-solid fa-skull-crossbones"></i>', color: 'gawat_darurat' };
+}
+
+// ===== FUNGSI DESKRIPSI PER STATUS =====
+/**
+ * Deskripsi spesifik per status dan tipe.
+ * @param {string} statusKey - 'sehat', 'waspada', 'risiko_tinggi', 'gawat_darurat'
+ * @param {string} type - 'subjektif', 'objektif', atau 'gabungan'
+ * @returns {string}
+ */
+function getDeskripsiByStatus(statusKey, type) {
+    const deskripsi = {
+        sehat: {
+            subjektif: 'Kondisi ginjal tampak normal berdasarkan gejala yang dilaporkan.',
+            objektif: 'Parameter pemeriksaan dalam batas normal.',
+            gabungan: 'Kondisi ginjal tampak normal berdasarkan gejala dan pemeriksaan.'
+        },
+        waspada: {
+            subjektif: 'Terdapat beberapa gejala yang perlu diperhatikan. Konsultasikan ke dokter.',
+            objektif: 'Beberapa parameter menunjukkan penyimpangan. Perlu evaluasi lebih lanjut.',
+            gabungan: 'Terdapat indikasi awal gangguan ginjal. Segera konsultasi ke dokter.'
+        },
+        risiko_tinggi: {
+            subjektif: 'Gejala yang dilaporkan menunjukkan risiko tinggi gangguan ginjal.',
+            objektif: 'Beberapa parameter menunjukkan abnormalitas signifikan.',
+            gabungan: 'Kombinasi gejala dan data pemeriksaan menunjukkan risiko tinggi. Segera konsultasi ke dokter spesialis ginjal.'
+        },
+        gawat_darurat: {
+            subjektif: 'Gejala yang dilaporkan sangat mengkhawatirkan. Segera periksakan ke dokter.',
+            objektif: 'Parameter pemeriksaan menunjukkan kondisi darurat.',
+            gabungan: 'Kondisi ini memerlukan penanganan medis segera. Segera pergi ke IGD atau fasilitas kesehatan terdekat!'
+        }
+    };
+    return (deskripsi[statusKey] && deskripsi[statusKey][type]) || 'Periksa ke dokter untuk evaluasi lebih lanjut.';
+}
+
+// ===== FUNGSI TAMPILAN HASIL PARSIAL =====
+/**
+ * Tampilkan halaman hasil berdasarkan tipe data yang tersedia.
+ * @param {string} type - 'sbj', 'obj', atau 'full'
+ */
+async function showResultPartial(type) {
+    const screening = await getLatestScreening();
+    if (!screening) return;
+
+    const sbj = screening.hasilSbj || null;
+    const obj = screening.hasilObj || null;
+
+    let html = '';
+
+    if (type === 'full' || (sbj && obj)) {
+        // Tampilkan hasil gabungan — gunakan hasil dari screening (sumber kebenaran)
+        const tipsList = TIPS[screening.status] || TIPS.sehat;
+        let tipsHtml = '';
+        tipsList.forEach(function (tip) { tipsHtml += '<li>' + tip + '</li>'; });
+
+        const deskripsi = screening.deskripsi || getDeskripsiByStatus(screening.status, 'gabungan');
+
+        html += `
+            <div class="result-header">
+                <div class="result-status-icon">${screening.statusIcon}</div>
+                <div class="result-status-badge ${screening.status}">${screening.statusLabel}</div>
+            </div>
+            <div class="result-deskripsi">${deskripsi}</div>
+            <div class="result-tips">
+                <h3>💙 Kiat untuk Anda:</h3>
+                <ul>${tipsHtml}</ul>
+            </div>
+        `;
+
+        // Tambahkan split view
+        if (sbj && obj) {
+            html += renderSplitView(sbj, obj);
+        }
+
+        html += `<p style="font-size:0.8rem;color:#a0aec0;margin-top:8px;">* Hasil ini bersifat indikasi awal dan bukan diagnosis medis. Tetap konsultasikan kondisi Anda ke tenaga kesehatan profesional.</p>`;
+    } else if (type === 'sbj' && sbj) {
+        html = renderSingleResult(sbj, 'subjektif', 'objektif');
+    } else if (type === 'obj' && obj) {
+        html = renderSingleResult(obj, 'objektif', 'subjektif');
+    } else {
+        return;
+    }
+
+    resultPage.innerHTML = html;
+    showPage('result');
+}
+
+/**
+ * Render hasil tunggal (subjektif atau objektif saja).
+ * @param {Object} data - Data hasil parsial
+ * @param {string} type - 'subjektif' atau 'objektif'
+ * @param {string} missingType - tipe yang belum diisi
+ * @returns {string} HTML string
+ */
+function renderSingleResult(data, type, missingType) {
+    const typeLabel = type === 'subjektif' ? 'Kuesioner Gejala' : 'Pemeriksaan Laboratorium';
+    const missingLabel = missingType === 'subjektif' ? 'kuesioner subjektif' : 'data checkup medis';
+    const navigatePage = missingType === 'subjektif' ? 'questionnaire' : 'objective';
+    const navigateFn = missingType === 'subjektif' ? 'startQuestionnaire' : 'renderObjectiveForm';
+
+    // Rekap data detail
+    let detailHtml = '';
+    if (type === 'objektif') {
+        const od = state.objectiveData || {};
+        detailHtml = `
+            <div class="result-obj-detail">
+                <p style="font-size:0.9rem;font-weight:600;color:#0a5c8a;margin-bottom:8px;">Detail Pemeriksaan:</p>
+                ${od.obj_systolic_bp ? '<p>• Tekanan Darah: ' + od.obj_systolic_bp + '/' + (od.obj_diastolic_bp || '-') + ' mmHg</p>' : ''}
+                ${od.obj_urine_protein ? '<p>• Protein Urine: ' + od.obj_urine_protein + '</p>' : ''}
+                ${od.obj_urine_glucose ? '<p>• Glukosa Urine: ' + od.obj_urine_glucose + '</p>' : ''}
+                ${od.obj_blood_glucose ? '<p>• Gula Darah: ' + od.obj_blood_glucose + ' mg/dL</p>' : ''}
+                ${od.obj_cholesterol ? '<p>• Kolesterol: ' + od.obj_cholesterol + ' mg/dL</p>' : ''}
+                ${od.obj_hemoglobin ? '<p>• Hemoglobin: ' + od.obj_hemoglobin + ' g/dL</p>' : ''}
+            </div>
+        `;
+    }
+
+    return `
+        <div class="result-single">
+            <div class="result-header">
+                <div class="result-status-icon">${data.statusIcon}</div>
+                <div class="result-status-badge ${data.status}">${data.statusLabel || data.status}</div>
+            </div>
+            <div class="result-deskripsi">${data.deskripsi}</div>
+            ${detailHtml}
+            <div class="result-incomplete">
+                <div class="incomplete-banner">⚠️ Data Belum Lengkap</div>
+                <p>Lengkapi dengan ${missingLabel} untuk hasil yang lebih akurat.</p>
+                <button class="btn btn-primary" onclick="window.${navigateFn} && window.${navigateFn}()" type="button">
+                    ${missingType === 'subjektif' ? 'Isi Kuesioner' : 'Isi Data Checkup Medis'}
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Render split view (subjektif & objektif berdampingan).
+ * @param {Object} sbj - Data hasil subjektif
+ * @param {Object} obj - Data hasil objektif
+ * @returns {string} HTML string
+ */
+function renderSplitView(sbj, obj) {
+    return `
+        <div class="result-split">
+            <h3 style="text-align:center;color:#0a5c8a;margin:20px 0 12px;">Rincian Pemeriksaan</h3>
+            <div class="split-container">
+                <div class="split-card">
+                    <div class="split-header">
+                        <span>📝 Subjektif</span>
+                        <span class="split-badge status-${sbj.status}">${sbj.status}</span>
+                    </div>
+                    <div class="split-score">${sbj.statusLabel || sbj.status}</div>
+                    <div class="split-icon">${sbj.statusIcon}</div>
+                    <button class="btn btn-secondary btn-sm" onclick="showResultPartial('sbj')" type="button">Detail</button>
+                </div>
+                <div class="split-card">
+                    <div class="split-header">
+                        <span>🔬 Checkup Medis</span>
+                        <span class="split-badge status-${obj.status}">${obj.statusLabel || obj.status}</span>
+                    </div>
+                    <div class="split-score">${obj.statusLabel || obj.status}</div>
+                    <div class="split-icon">${obj.statusIcon}</div>
+                    <button class="btn btn-secondary btn-sm" onclick="showResultPartial('obj')" type="button">Detail</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 // ===== MENAMPILKAN MODAL KONFIRMASI =====
 function showConfirmationModal() {
     let summaryHtml = '';
@@ -503,6 +758,20 @@ function showConfirmationModal() {
 
     modalSummary.innerHTML = summaryHtml;
 
+    // Update tombol "Isi Data Checkup Medis" berdasarkan data yang sudah ada
+    const btnToObj = document.getElementById('btnModalToObj');
+    if (btnToObj) {
+        const hasObjData = state.objectiveData && (
+            state.objectiveData.obj_systolic_bp ||
+            state.objectiveData.obj_blood_glucose ||
+            state.objectiveData.obj_cholesterol ||
+            state.objectiveData.obj_hemoglobin
+        );
+        btnToObj.innerHTML = hasObjData
+            ? '<i class="fa-solid fa-pen"></i> Update Data Checkup Medis →'
+            : 'Isi Data Checkup Medis →';
+    }
+
     // Tampilkan modal
     modalOverlay.classList.add('active');
 
@@ -513,11 +782,21 @@ function showConfirmationModal() {
     document.body.style.overflow = 'hidden';
 }
 
-// ===== KONFIRMASI MODAL: KE FORM OBJEKTIF =====
+// ===== KONFIRMASI MODAL: KE FORM CHECKUP MEDIS =====
+const btnModalToObj = document.getElementById('btnModalToObj');
+if (btnModalToObj) {
+    btnModalToObj.addEventListener('click', function () {
+        modalOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        renderObjectiveForm();
+    });
+}
+
+// ===== KONFIRMASI MODAL: LANGSUNG LIHAT HASIL =====
 btnModalConfirm.addEventListener('click', function () {
     modalOverlay.classList.remove('active');
     document.body.style.overflow = '';
-    renderObjectiveForm();
+    showResultFinal();
 });
 
 // ===== KONFIRMASI MODAL: KEMBALI =====
@@ -550,7 +829,7 @@ function renderObjectiveForm() {
 
     objectiveContainer.innerHTML = `
         <div class="objective-header">
-            <h2><i class="fa-solid fa-flask"></i> Data Pemeriksaan Objektif</h2>
+            <h2><i class="fa-solid fa-flask"></i> Data Hasil Checkup Medis</h2>
             <p>Masukkan hasil pemeriksaan dari Puskesmas/Klinik (opsional)</p>
         </div>
 
@@ -631,10 +910,10 @@ function renderObjectiveForm() {
 
         <div class="obj-actions">
             <button class="btn btn-secondary" id="btnSkipObjective" type="button">
-                Lewati (Hanya Kuesioner)
+                Lihat Hasil
             </button>
             <button class="btn btn-primary" id="btnSaveObjective" type="button">
-                Simpan & Lihat Hasil →
+                Simpan Data Checkup & Lihat Hasil →
             </button>
         </div>
     `;
@@ -642,8 +921,9 @@ function renderObjectiveForm() {
     showPage('objective');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
+    // Tombol 'Lihat Hasil' — langsung ke hasil tanpa simpan data baru
+    // (data objektif yang sudah ada di Supabase tetap dipertahankan)
     $('btnSkipObjective').addEventListener('click', function () {
-        state.objectiveData = null;
         showResultFinal();
     });
 
@@ -666,14 +946,40 @@ function renderObjectiveForm() {
 async function showResultFinal() {
     const skorSubjektif = hitungSkor();
     const gender = currentUser ? currentUser.jenisKelamin : '';
-    const skorObjektif = state.objectiveData ? hitungSkorObjektif(state.objectiveData, gender) : 0;
+
+    // FIX: Jika user skip form objektif (state.objectiveData = null),
+    // ambil data objektif yang sudah ada di Supabase agar tidak hilang
+    let objectiveData = state.objectiveData;
+    if (!objectiveData && currentUser && currentUser.id) {
+        try {
+            const { data: existing } = await supabaseClient
+                .from('screening_data')
+                .select('obj_systolic_bp, obj_diastolic_bp, obj_urine_protein, obj_urine_glucose, obj_blood_glucose, obj_cholesterol, obj_hemoglobin, obj_measurement_date')
+                .eq('user_id', currentUser.id)
+                .order('screening_date', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+            if (existing && (existing.obj_systolic_bp || existing.obj_blood_glucose || existing.obj_cholesterol || existing.obj_hemoglobin)) {
+                objectiveData = existing;
+                console.log('[showResultFinal] Menggunakan data objektif dari Supabase (user skip form)');
+            }
+        } catch (e) {
+            console.warn('[showResultFinal] Gagal ambil data objektif:', e);
+        }
+    }
+
+    const skorObjektif = objectiveData ? hitungSkorObjektif(objectiveData, gender) : 0;
     const skorTotal = skorSubjektif + skorObjektif;
     const status = tentukanStatus(skorTotal);
     const tipsList = TIPS[status.key] || TIPS.sehat;
 
+    console.log('[showResultFinal] skorSbj:', skorSubjektif, 'skorObj:', skorObjektif, 'total:', skorTotal, 'status:', status.key);
+    console.log('[showResultFinal] objectiveData:', state.objectiveData);
+    console.log('[showResultFinal] currentUser:', currentUser ? currentUser.id : 'NULL');
+
     const saved = await saveScreeningResult({
         answers: state.answers,
-        objectiveData: state.objectiveData,
+        objectiveData: objectiveData,
         totalScore: skorTotal,
         skorSubjektif: skorSubjektif,
         skorObjektif: skorObjektif,
@@ -681,6 +987,8 @@ async function showResultFinal() {
         statusLabel: status.label,
         statusIcon: status.icon
     });
+
+    console.log('[showResultFinal] saved:', saved);
 
     clearPartialQuestionnaire();
 
@@ -690,24 +998,17 @@ async function showResultFinal() {
     let tipsHtml = '';
     tipsList.forEach((tip) => { tipsHtml += `<li>${tip}</li>`; });
 
+    // Gunakan status dari hasil yang tersimpan (sumber kebenaran), fallback ke status lokal
+    const finalStatus = (saved && saved.hasil) ? saved.hasil : status;
+    const finalIcon = finalStatus.statusIcon || status.icon;
+    const finalLabel = finalStatus.statusLabel || status.label;
+    const finalColor = finalStatus.status || status.color;
+    const finalDeskripsi = finalStatus.deskripsi || deskripsi;
+
     resultPage.innerHTML = `
-        <div class="result-status-icon">${status.icon}</div>
-        <div class="result-status-badge ${status.color}">${status.label}</div>
-        <div class="result-breakdown">
-            <div class="result-score-item">
-                <span class="score-label">Subjektif</span>
-                <span class="score-value">${skorSubjektif} / 20</span>
-            </div>
-            <div class="result-score-item">
-                <span class="score-label">Objektif</span>
-                <span class="score-value">${skorObjektif} / 15</span>
-            </div>
-            <div class="result-score-item total">
-                <span class="score-label">Total</span>
-                <span class="score-value">${skorTotal} / 35</span>
-            </div>
-        </div>
-        <div class="result-deskripsi">${deskripsi}</div>
+        <div class="result-status-icon">${finalIcon}</div>
+        <div class="result-status-badge ${finalColor}">${finalLabel}</div>
+        <div class="result-deskripsi">${finalDeskripsi}</div>
         <div class="result-tips">
             <h3>💙 Kiat untuk Anda:</h3>
             <ul>${tipsHtml}</ul>
@@ -723,36 +1024,42 @@ async function showResultFinal() {
 
 // ===== MENAMPILKAN HASIL DARI DATA TERSIMPAN =====
 function showResultFromData(screening) {
+    // Deteksi partial data — gunakan showResultPartial jika ada data parsial
+    const hasSbj = screening.hasilSbj && screening.hasilSbj !== null;
+    const hasObj = screening.hasilObj && screening.hasilObj !== null;
+
+    if (hasSbj && !hasObj) {
+        // Hanya subjektif — tampilkan hasil parsial subjektif
+        state.answers = screening.answers;
+        showResultPartial('sbj');
+        return;
+    } else if (!hasSbj && hasObj) {
+        // Hanya objektif — tampilkan hasil parsial objektif
+        state.objectiveData = screening.objectiveData;
+        showResultPartial('obj');
+        return;
+    }
+
+    // Keduanya ada atau full — tampilkan gabungan
     const tipsList = TIPS[screening.status] || TIPS.sehat;
     let tipsHtml = '';
     tipsList.forEach(function (tip) { tipsHtml += '<li>' + tip + '</li>'; });
     const deskripsi = screening.deskripsi || 'Tidak ada deskripsi tersedia.';
-    const skorSub = screening.skorSubjektif || 0;
-    const skorObj = screening.skorObjektif || 0;
-    const skorTotal = screening.totalScore || (skorSub + skorObj);
+
+    // Gunakan status dari hasil yang tersimpan (sumber kebenaran)
+    const finalIcon = screening.statusIcon || '✅';
+    const finalLabel = screening.statusLabel || screening.status || 'Sehat';
+    const finalColor = screening.status || 'sehat';
 
     resultPage.innerHTML = `
-        <div class="result-status-icon">${screening.statusIcon}</div>
-        <div class="result-status-badge ${screening.status}">${screening.statusLabel}</div>
-        <div class="result-breakdown">
-            <div class="result-score-item">
-                <span class="score-label">Subjektif</span>
-                <span class="score-value">${skorSub} / 20</span>
-            </div>
-            <div class="result-score-item">
-                <span class="score-label">Objektif</span>
-                <span class="score-value">${skorObj} / 15</span>
-            </div>
-            <div class="result-score-item total">
-                <span class="score-label">Total</span>
-                <span class="score-value">${skorTotal} / 35</span>
-            </div>
-        </div>
+        <div class="result-status-icon">${finalIcon}</div>
+        <div class="result-status-badge ${finalColor}">${finalLabel}</div>
         <div class="result-deskripsi">${deskripsi}</div>
         <div class="result-tips">
             <h3>💙 Kiat untuk Anda:</h3>
             <ul>${tipsHtml}</ul>
         </div>
+        ${hasSbj && hasObj ? renderSplitView(screening.hasilSbj, screening.hasilObj) : ''}
         <p style="font-size:0.8rem;color:#a0aec0;margin-top:8px;">
             * Hasil ini bersifat indikasi awal dan bukan diagnosis medis.
             Tetap konsultasikan kondisi Anda ke tenaga kesehatan profesional.

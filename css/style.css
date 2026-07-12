@@ -1127,3 +1127,78 @@ body:has(#page-landing.active) header {
     font-weight: 700;
     color: #1a1a2e;
 }
+
+/* ===== PARTIAL RESULT VIEW ===== */
+.result-single {
+    text-align: center;
+}
+
+.result-single .result-header {
+    margin-bottom: 16px;
+}
+
+.result-single .result-score {
+    font-size: 1.1rem;
+    color: #2d3748;
+    margin-bottom: 16px;
+}
+
+.result-single .result-score strong {
+    color: #0a5c8a;
+    font-size: 1.3rem;
+}
+
+.result-obj-detail {
+    text-align: left;
+    background: #f7fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin: 12px 0;
+}
+
+.result-obj-detail p {
+    font-size: 0.9rem;
+    color: #2d3748;
+    margin-bottom: 4px;
+    line-height: 1.6;
+}
+
+/* ===== RESULT INCOMPLETE BANNER ===== */
+.result-incomplete {
+    background: #fff3cd;
+    border: 1.5px solid #ffc107;
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 24px;
+    text-align: center;
+}
+
+.incomplete-banner {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #856404;
+    margin-bottom: 8px;
+}
+
+.result-incomplete p {
+    font-size: 0.95rem;
+    color: #856404;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+/* ===== RESULT SPLIT VIEW (di halaman hasil) ===== */
+.result-split {
+    margin-top: 24px;
+}
+
+/* ===== RESPONSIVE RESULT ===== */
+@media (max-width: 600px) {
+    .result-incomplete {
+        padding: 16px;
+    }
+    .result-single .result-score {
+        font-size: 1rem;
+    }
+}
