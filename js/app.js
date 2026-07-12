@@ -997,7 +997,10 @@ async function showResultFinal() {
     const deskripsi = (saved && saved.hasil && saved.hasil.deskripsi)
         ? saved.hasil.deskripsi : 'Tidak ada deskripsi tersedia.';
 
+    // Bangun tips dari tipsList (berdasarkan status)
     let tipsHtml = '';
+    tipsList.forEach(function (tip) { tipsHtml += '<li>' + tip + '</li>'; });
+
     // Gunakan status dari hasil yang tersimpan (sumber kebenaran), fallback ke status lokal
     const finalStatus = (saved && saved.hasil) ? saved.hasil : status;
     const finalIcon = finalStatus.statusIcon || status.icon;
