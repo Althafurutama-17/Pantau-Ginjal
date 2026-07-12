@@ -8,107 +8,117 @@
  */
 
 // ===== DATA PERTANYAAN =====
-// Array berisi 10 pertanyaan dengan opsi jawaban berskala
+// 10 pertanyaan subjektif berdasarkan literatur medis — 3 opsi (0,1,2)
 const QUESTIONS = [
     {
         id: 1,
-        text: "Seberapa sering Anda merasa mudah lelah tanpa sebab yang jelas?",
+        code: 'subj_foamy_urine',
+        question: 'Dalam 1 minggu terakhir, seberapa sering Anda melihat urine (air kencing) Anda berbusa atau berbuih?',
         options: [
-            { label: "Tidak Pernah", value: 0 },
-            { label: "Kadang-kadang", value: 1 },
-            { label: "Sering", value: 2 },
-            { label: "Sangat Sering", value: 3 }
-        ]
+            { label: 'Tidak pernah', value: 0 },
+            { label: 'Kadang-kadang', value: 1 },
+            { label: 'Sering', value: 2 }
+        ],
+        timeFrame: '1 minggu'
     },
     {
         id: 2,
-        text: "Seberapa sering Anda mengalami pembengkakan di kaki atau pergelangan kaki?",
+        code: 'subj_pruritus',
+        question: 'Dalam 1 minggu terakhir, seberapa sering Anda merasa gatal-gatal pada kulit tanpa sebab yang jelas?',
         options: [
-            { label: "Tidak Pernah", value: 0 },
-            { label: "Kadang-kadang", value: 1 },
-            { label: "Sering", value: 2 },
-            { label: "Sangat Sering", value: 3 }
-        ]
+            { label: 'Tidak pernah', value: 0 },
+            { label: 'Kadang-kadang', value: 1 },
+            { label: 'Sering', value: 2 }
+        ],
+        timeFrame: '1 minggu'
     },
     {
         id: 3,
-        text: "Seberapa sering urine (air kencing) Anda berbusa atau tampak berbuih?",
+        code: 'subj_fatigue',
+        question: 'Dalam 1 minggu terakhir, seberapa sering Anda merasa mudah lelah tanpa sebab yang jelas?',
         options: [
-            { label: "Tidak Pernah", value: 0 },
-            { label: "Kadang-kadang", value: 1 },
-            { label: "Sering", value: 2 },
-            { label: "Sangat Sering", value: 3 }
-        ]
+            { label: 'Tidak pernah', value: 0 },
+            { label: 'Kadang-kadang', value: 1 },
+            { label: 'Sering', value: 2 }
+        ],
+        timeFrame: '1 minggu'
     },
     {
         id: 4,
-        text: "Seberapa sering Anda buang air kecil di malam hari (lebih dari 2 kali)?",
+        code: 'subj_edema',
+        question: 'Dalam 1 minggu terakhir, apakah Anda mengalami pembengkakan di kaki atau pergelangan kaki?',
         options: [
-            { label: "Tidak Pernah", value: 0 },
-            { label: "Kadang-kadang", value: 1 },
-            { label: "Sering", value: 2 },
-            { label: "Sangat Sering", value: 3 }
-        ]
+            { label: 'Tidak pernah', value: 0 },
+            { label: 'Kadang-kadang', value: 1 },
+            { label: 'Sering', value: 2 }
+        ],
+        timeFrame: '1 minggu'
     },
     {
         id: 5,
-        text: "Seberapa sering Anda merasakan nyeri atau pegal di bagian pinggang belakang?",
+        code: 'subj_nocturia',
+        question: 'Dalam 1 minggu terakhir, seberapa sering Anda terbangun di malam hari untuk buang air kecil (lebih dari 2 kali)?',
         options: [
-            { label: "Tidak Pernah", value: 0 },
-            { label: "Kadang-kadang", value: 1 },
-            { label: "Sering", value: 2 },
-            { label: "Sangat Sering", value: 3 }
-        ]
+            { label: 'Tidak pernah', value: 0 },
+            { label: 'Kadang-kadang', value: 1 },
+            { label: 'Sering', value: 2 }
+        ],
+        timeFrame: '1 minggu'
     },
     {
         id: 6,
-        text: "Seberapa sering Anda mengalami penurunan nafsu makan?",
+        code: 'subj_dry_mouth',
+        question: 'Dalam 1 minggu terakhir, seberapa sering Anda merasa mulut terasa kering?',
         options: [
-            { label: "Tidak Pernah", value: 0 },
-            { label: "Kadang-kadang", value: 1 },
-            { label: "Sering", value: 2 },
-            { label: "Sangat Sering", value: 3 }
-        ]
+            { label: 'Tidak pernah', value: 0 },
+            { label: 'Kadang-kadang', value: 1 },
+            { label: 'Sering', value: 2 }
+        ],
+        timeFrame: '1 minggu'
     },
     {
         id: 7,
-        text: "Seberapa sering Anda merasa gatal-gatal pada kulit tanpa sebab yang jelas?",
+        code: 'subj_taste_change',
+        question: 'Dalam 1 minggu terakhir, apakah Anda mengalami perubahan rasa (misal: rasa logam di mulut, kehilangan rasa, atau rasa aneh)?',
         options: [
-            { label: "Tidak Pernah", value: 0 },
-            { label: "Kadang-kadang", value: 1 },
-            { label: "Sering", value: 2 },
-            { label: "Sangat Sering", value: 3 }
-        ]
+            { label: 'Tidak ada perubahan', value: 0 },
+            { label: 'Perubahan ringan', value: 1 },
+            { label: 'Perubahan jelas', value: 2 }
+        ],
+        timeFrame: '1 minggu'
     },
     {
         id: 8,
-        text: "Seberapa sering Anda mengalami sesak napas setelah melakukan aktivitas ringan?",
+        code: 'subj_nail_change',
+        question: 'Dalam 1 bulan terakhir, apakah Anda melihat perubahan pada kuku Anda (misal: kuku pucat, bercak putih, kuku rapuh)?',
         options: [
-            { label: "Tidak Pernah", value: 0 },
-            { label: "Kadang-kadang", value: 1 },
-            { label: "Sering", value: 2 },
-            { label: "Sangat Sering", value: 3 }
-        ]
+            { label: 'Tidak ada perubahan', value: 0 },
+            { label: 'Perubahan ringan', value: 1 },
+            { label: 'Perubahan jelas', value: 2 }
+        ],
+        timeFrame: '1 bulan'
     },
     {
         id: 9,
-        text: "Seberapa sering Anda merasa mual atau ingin muntah?",
+        code: 'subj_skin_change',
+        question: 'Dalam 1 bulan terakhir, apakah Anda melihat perubahan pada kulit Anda (misal: kulit sangat kering, pucat, atau perubahan warna)?',
         options: [
-            { label: "Tidak Pernah", value: 0 },
-            { label: "Kadang-kadang", value: 1 },
-            { label: "Sering", value: 2 },
-            { label: "Sangat Sering", value: 3 }
-        ]
+            { label: 'Tidak ada perubahan', value: 0 },
+            { label: 'Perubahan ringan', value: 1 },
+            { label: 'Perubahan jelas', value: 2 }
+        ],
+        timeFrame: '1 bulan'
     },
     {
         id: 10,
-        text: "Apakah Anda memiliki riwayat tekanan darah tinggi (hipertensi)?",
+        code: 'subj_sleep_disturbance',
+        question: 'Dalam 1 minggu terakhir, seberapa sering Anda mengalami kesulitan tidur atau tidur tidak nyenyak?',
         options: [
-            { label: "Tidak Pernah", value: 0 },
-            { label: "Kadang-kadang", value: 1 },
-            { label: "Sering", value: 2 },
-            { label: "Sangat Sering", value: 3 }
-        ]
+            { label: 'Tidak pernah', value: 0 },
+            { label: 'Kadang-kadang', value: 1 },
+            { label: 'Sering', value: 2 }
+        ],
+        timeFrame: '1 minggu'
     }
 ];
 
@@ -135,6 +145,20 @@ const TIPS = {
         "Batasi asupan makanan tinggi kalium (pisang, jeruk, kentang, tomat, bayam) dan tinggi fosfor (keju, susu, kacang-kacangan, minuman bersoda) — konsultasikan dengan dokter mengenai batas aman untuk Anda.",
         "Pantau jumlah urine setiap hari — jika volume urine berkurang drastis atau justru berlebihan di malam hari, segera laporkan ke dokter.",
         "Jangan menunda pemeriksaan meskipun merasa tidak ada keluhan berarti. Deteksi dan penanganan dini sangat penting untuk memperlambat perkembangan penyakit ginjal."
+    ],
+    risiko_tinggi: [
+        "Segera konsultasikan ke dokter spesialis ginjal (nefrologi) dalam 1 minggu untuk pemeriksaan lengkap: tes darah (kreatinin, ureum, elektrolit), tes urine (proteinuria), dan USG ginjal.",
+        "HINDARI semua obat pereda nyeri golongan NSAID (ibuprofen, aspirin, diklofenak, naproxen) — dapat memperburuk kerusakan ginjal secara signifikan.",
+        "Batasi asupan garam maksimal 3 gram per hari. Hindari makanan olahan, mie instan, keripik, dan makanan kaleng.",
+        "Pantau tekanan darah 2 kali sehari (pagi dan malam). Catat hasilnya untuk diperlihatkan ke dokter.",
+        "Jangan tunda — kondisi ini memerlukan penanganan medis segera untuk mencegah kerusakan ginjal lebih lanjut."
+    ],
+    gawat_darurat: [
+        "SEGERA pergi ke IGD atau fasilitas kesehatan terdekat — kondisi ini memerlukan penanganan medis darurat.",
+        "Jangan mengonsumsi obat apapun tanpa resep dokter, terutama obat pereda nyeri dan antibiotik.",
+        "Jika mengalami sesak napas parah, muntah terus-menerus, atau kebingungan — segera hubungi layanan darurat.",
+        "Bawa hasil skrining ini ke dokter sebagai informasi awal untuk penanganan lebih lanjut.",
+        "Kondisi ini bisa mengancam jiwa jika tidak ditangani segera. Prioritas utama adalah keselamatan Anda."
     ]
 };
 
@@ -145,7 +169,7 @@ let currentUser = null;  // Data user yang sedang login
 const state = {
     currentPage: 'login',   // 'login' | 'dashboard' | 'questionnaire' | 'result' | 'profile'
     currentQuestion: 0,     // indeks pertanyaan saat ini (0-9)
-    answers: new Array(10).fill(null)  // menyimpan nilai jawaban tiap pertanyaan
+    answers: {}             // Objek: { 'subj_foamy_urine': 0, 'subj_pruritus': 1, ... }
 };
 
 // ===== REFERENSI DOM =====
@@ -268,7 +292,8 @@ function renderNavButtons() {
     } else if (page === 'questionnaire') {
         const isFirst = state.currentQuestion === 0;
         const isLast  = state.currentQuestion === QUESTIONS.length - 1;
-        const hasAnswer = state.answers[state.currentQuestion] !== null;
+        const currentCode = QUESTIONS[state.currentQuestion].code;
+        const hasAnswer = state.answers[currentCode] !== undefined;
 
         navFooter.innerHTML = `
             <button class="btn btn-secondary" id="btnBackHome" type="button"><i class="fa-solid fa-house"></i> Beranda</button>
@@ -300,31 +325,30 @@ function renderNavButtons() {
 // ===== MEMULAI KUESIONER =====
 function startQuestionnaire() {
     state.currentQuestion = 0;
-    state.answers = new Array(10).fill(null);
+    state.answers = {};
     clearPartialQuestionnaire();
     showPage('questionnaire');
     renderQuestion();
 }
 
 // ===== MELANJUTKAN KUESIONER (dari partial save) =====
-function resumeQuestionnaire() {
+async function resumeQuestionnaire() {
     var partial = getPartialQuestionnaire();
     if (partial && partial.answers) {
         state.currentQuestion = partial.currentQuestion || 0;
         state.answers = partial.answers;
     } else {
         state.currentQuestion = 0;
-        state.answers = new Array(10).fill(null);
+        state.answers = {};
     }
     showPage('questionnaire');
     renderQuestion();
 }
 
-// ===== MENAMPILKAN HASIL TERAKHIR DARI LOCALSTORAGE =====
-function showLastResult() {
-    var screening = getLatestScreening();
+// ===== MENAMPILKAN HASIL TERAKHIR DARI SUPABASE =====
+async function showLastResult() {
+    var screening = await getLatestScreening();
     if (screening) {
-        // Muat data ke state untuk kompatibilitas
         state.answers = screening.answers;
         showResultFromData(screening);
     }
@@ -339,7 +363,7 @@ window.showLastResult = showLastResult;
 function renderQuestion() {
     const q = QUESTIONS[state.currentQuestion];
     const idx = state.currentQuestion;
-    const selectedValue = state.answers[idx];
+    const selectedValue = state.answers[q.code];
 
     // Update progress bar
     updateProgress();
@@ -355,11 +379,10 @@ function renderQuestion() {
                        id="q${q.id}-opt${opt.value}"
                        value="${opt.value}"
                        ${isChecked ? 'checked' : ''}
-                       data-question-index="${idx}">
+                       data-question-code="${q.code}">
                 <label for="q${q.id}-opt${opt.value}">
                     <span class="radio-circle"></span>
                     <span>${opt.label}</span>
-                    <span class="option-score">(${opt.value === 0 ? 'Tidak pernah' : opt.value === 1 ? 'Kadang' : opt.value === 2 ? 'Sering' : 'Sangat sering'})</span>
                 </label>
             </div>
         `;
@@ -367,7 +390,8 @@ function renderQuestion() {
 
     questionContainer.innerHTML = `
         <div class="question-number">Pertanyaan ${idx + 1} dari ${QUESTIONS.length}</div>
-        <div class="question-text">${q.text}</div>
+        <div class="question-timeframe">Periode: ${q.timeFrame} terakhir</div>
+        <div class="question-text">${q.question}</div>
         <div class="options-group" role="radiogroup" aria-label="Pilihan jawaban pertanyaan ${idx + 1}">
             ${optionsHtml}
         </div>
@@ -376,7 +400,7 @@ function renderQuestion() {
     // Event listener untuk radio buttons
     document.querySelectorAll('input[name="q-' + q.id + '"]').forEach((radio) => {
         radio.addEventListener('change', function () {
-            state.answers[parseInt(this.dataset.questionIndex)] = parseInt(this.value);
+            state.answers[this.dataset.questionCode] = parseInt(this.value);
             renderNavButtons();
         });
     });
@@ -394,11 +418,11 @@ function renderQuestion() {
 // ===== UPDATE PROGRESS BAR =====
 function updateProgress() {
     const total = QUESTIONS.length;
-    const current = state.currentQuestion + 1;
-    const percent = Math.round((current / total) * 100);
+    const answeredCount = Object.keys(state.answers).length;
+    const percent = Math.round((answeredCount / total) * 100);
 
     progressFill.style.width = percent + '%';
-    progressText.textContent = 'Pertanyaan ' + current + ' dari ' + total;
+    progressText.textContent = 'Pertanyaan ' + (state.currentQuestion + 1) + ' dari ' + total;
     progressPercent.textContent = percent + '%';
     progressBarEl.setAttribute('aria-valuenow', percent);
 }
@@ -413,8 +437,9 @@ function prevQuestion() {
 
 // ===== NAVIGASI: PERTANYAAN BERIKUTNYA =====
 function nextQuestion() {
+    const currentCode = QUESTIONS[state.currentQuestion].code;
     // Pastikan jawaban sudah dipilih
-    if (state.answers[state.currentQuestion] === null) return;
+    if (state.answers[currentCode] === undefined) return;
 
     // Simpan progress parsial ke localStorage
     savePartialQuestionnaire({
@@ -425,7 +450,6 @@ function nextQuestion() {
     const isLast = state.currentQuestion === QUESTIONS.length - 1;
 
     if (isLast) {
-        // Tampilkan modal konfirmasi
         showConfirmationModal();
     } else {
         state.currentQuestion++;
@@ -434,51 +458,56 @@ function nextQuestion() {
 }
 
 // ===== FUNGSI MENGHITUNG SKOR TOTAL =====
-// Menjumlahkan semua nilai jawaban pengguna
 function hitungSkor() {
-    return state.answers.reduce((total, val) => total + (val !== null ? val : 0), 0);
+    return Object.values(state.answers).reduce((total, val) => total + (val || 0), 0);
 }
 
 // ===== FUNGSI MENENTUKAN STATUS KESEHATAN =====
-// Berdasarkan skor total, tentukan kategori
 function tentukanStatus(skor) {
     if (skor <= 5) {
         return {
             key: 'sehat',
-            label: 'Sehat / Normal',
+            label: 'Sehat',
             icon: '<i class="fa-solid fa-circle-check"></i>',
             color: 'sehat'
         };
-    } else if (skor <= 12) {
+    } else if (skor <= 10) {
         return {
             key: 'waspada',
-            label: 'Waspada / Risiko Ringan',
+            label: 'Waspada',
             icon: '<i class="fa-solid fa-triangle-exclamation"></i>',
             color: 'waspada'
         };
+    } else if (skor <= 15) {
+        return {
+            key: 'risiko_tinggi',
+            label: 'Risiko Tinggi',
+            icon: '<i class="fa-solid fa-circle-exclamation"></i>',
+            color: 'risiko_tinggi'
+        };
     } else {
         return {
-            key: 'konsultasi',
-            label: 'Konsultasi / Risiko Tinggi',
-            icon: '<i class="fa-solid fa-circle-exclamation"></i>',
-            color: 'konsultasi'
+            key: 'gawat_darurat',
+            label: 'Gawat Darurat',
+            icon: '<i class="fa-solid fa-skull-crossbones"></i>',
+            color: 'gawat_darurat'
         };
     }
 }
 
 // ===== MENAMPILKAN MODAL KONFIRMASI =====
 function showConfirmationModal() {
-    // Bangun ringkasan jawaban
     let summaryHtml = '';
     QUESTIONS.forEach((q, idx) => {
-        const answerValue = state.answers[idx];
-        const answerLabel = answerValue !== null
+        const answerValue = state.answers[q.code];
+        const answerLabel = answerValue !== undefined
             ? q.options.find(o => o.value === answerValue).label
             : '<em style="color:#e53e3e;">Belum dijawab</em>';
         summaryHtml += `
             <div class="modal-summary-item">
                 <span class="q-num">${idx + 1}.</span>
-                <span class="q-text">${q.text}</span>
+                <span class="q-text">${q.question}</span>
+                <span class="q-timeframe">Periode: ${q.timeFrame}</span>
                 <span class="q-answer">${answerLabel}</span>
             </div>
         `;
@@ -530,9 +559,9 @@ modalOverlay.addEventListener('keydown', function (e) {
 async function showResult() {
     const skor = hitungSkor();
     const status = tentukanStatus(skor);
-    const tipsList = TIPS[status.key];
+    const tipsList = TIPS[status.key] || TIPS.sehat;
 
-    // Simpan ke localStorage + Supabase
+    // Simpan ke Supabase
     await saveScreeningResult({
         answers: state.answers,
         totalScore: skor,
@@ -554,7 +583,7 @@ async function showResult() {
         <div class="result-status-icon">${status.icon}</div>
         <div class="result-status-badge ${status.color}">${status.label}</div>
         <div class="result-score">
-            Skor Anda: <strong>${skor}</strong> dari maksimal 30
+            Skor Anda: <strong>${skor}</strong> dari maksimal 20
         </div>
         <div class="result-tips">
             <h3>💙 Kiat untuk Anda:</h3>
@@ -582,7 +611,7 @@ function showResultFromData(screening) {
         <div class="result-status-icon">${screening.statusIcon}</div>
         <div class="result-status-badge ${screening.status}">${screening.statusLabel}</div>
         <div class="result-score">
-            Skor Anda: <strong>${screening.totalScore}</strong> dari maksimal 30
+            Skor Anda: <strong>${screening.totalScore}</strong> dari maksimal 20
         </div>
         <div class="result-tips">
             <h3>💙 Kiat untuk Anda:</h3>
@@ -601,7 +630,7 @@ function showResultFromData(screening) {
 function restartApp() {
     // Reset state
     state.currentQuestion = 0;
-    state.answers = new Array(10).fill(null);
+    state.answers = {};
 
     // Reset progress
     progressFill.style.width = '0%';
@@ -871,8 +900,8 @@ btnLogoutConfirm.addEventListener('click', async function () {
     isLoggedIn = false;
     currentUser = null;
     state.currentQuestion = 0;
-    state.answers = new Array(10).fill(null);
-    progressFill.style.width = '0%';
+    state.answers = {};
+    progressFill.style.width = '0%';;
     progressText.textContent = 'Pertanyaan 1 dari 10';
     progressPercent.textContent = '0%';
     progressBarEl.setAttribute('aria-valuenow', 0);

@@ -479,6 +479,17 @@ body:has(#page-landing.active) header {
     margin-bottom: 4px;
 }
 
+.question-timeframe {
+    font-size: 0.85rem;
+    color: #718096;
+    background: #f0f7fc;
+    border-left: 3px solid #1a7fc4;
+    padding: 6px 12px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
 .question-text {
     font-size: 1.1rem;
     font-weight: 600;
@@ -609,10 +620,17 @@ body:has(#page-landing.active) header {
     border: 2px solid #ffc107;
 }
 
-.result-status-badge.konsultasi {
+.result-status-badge.konsultasi,
+.result-status-badge.risiko_tinggi {
     background-color: #f8d7da;
     color: #721c24;
     border: 2px solid #dc3545;
+}
+
+.result-status-badge.gawat_darurat {
+    background-color: #721c24;
+    color: #ffffff;
+    border: 2px solid #721c24;
 }
 
 .result-score {
@@ -733,6 +751,15 @@ body:has(#page-landing.active) header {
     color: #0a5c8a;
     text-align: right;
     min-width: 100px;
+}
+
+.modal-summary-item .q-timeframe {
+    font-size: 0.75rem;
+    color: #718096;
+    background: #f0f7fc;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
 }
 
 .modal-actions {

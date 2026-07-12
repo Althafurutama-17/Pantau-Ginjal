@@ -1,162 +1,265 @@
 /**
  * =========================================
- *  STORAGE MANAGER — localStorage Wrapper
+ *  STORAGE MANAGER — Full Supabase
  *  File: js/storage.js
  *  Deskripsi: Menyimpan & mengambil data
- *  skrining ke/dari localStorage browser
+ *  skrining ke/dari Supabase (Cloud)
  * =========================================
  */
 
-const STORAGE_KEY = 'ginjal_screenings';
+// ===== KEY UNTUK PARTIAL QUESTIONNAIRE (tetap localStorage) =====
+const PARTIAL_KEY = 'ginjal_partial';
+
+// ===== HELPER: Map kolom subj_* ke/from objek answers =====
+const SUBJECTIVE_KEYS = [
+    'subj_foamy_urine', 'subj_pruritus', 'subj_fatigue', 'subj_edema',
+    'subj_nocturia', 'subj_dry_mouth', 'subj_taste_change', 'subj_nail_change',
+    'subj_skin_change', 'subj_sleep_disturbance'
+];
 
 /**
- * Menyimpan hasil skrining baru ke localStorage DAN Supabase.
+ * Map answers object → kolom Supabase.
+ */
+function mapAnswersToSupabase(answers) {
+    const data = {};
+    SUBJECTIVE_KEYS.forEach(key => { data[key] = answers[key] || 0; });
+    return data;
+}
+
+/**
+ * Map kolom Supabase → answers object.
+ */
+function mapSupabaseToAnswers(row) {
+    const answers = {};
+    SUBJECTIVE_KEYS.forEach(key => { answers[key] = row[key] || 0; });
+    return answers;
+}
+
+/**
+ * Hitung skor dari answers object.
+ */
+function hitungSkorFromAnswers(answers) {
+    return Object.values(answers).reduce((total, val) => total + (val || 0), 0);
+}
+
+/**
+ * Tentukan status key berdasarkan skor.
+ */
+function tentukanStatusKey(skor) {
+    if (skor <= 5) return 'sehat';
+    if (skor <= 10) return 'waspada';
+    if (skor <= 15) return 'risiko_tinggi';
+    return 'gawat_darurat';
+}
+
+/**
+ * Tentukan status label berdasarkan skor.
+ */
+function tentukanStatusLabel(skor) {
+    if (skor <= 5) return 'Sehat';
+    if (skor <= 10) return 'Waspada';
+    if (skor <= 15) return 'Risiko Tinggi';
+    return 'Gawat Darurat';
+}
+
+/**
+ * Tentukan status icon berdasarkan skor.
+ */
+function tentukanStatusIcon(skor) {
+    if (skor <= 5) return '✅';
+    if (skor <= 10) return '⚠️';
+    if (skor <= 15) return '🔴';
+    return '🚨';
+}
+
+/**
+ * Map answers object ke format display untuk aplikasi.
+ */
+function mapAnswersToDisplay(answers) {
+    return {
+        id: null,
+        answers: answers,
+        totalScore: hitungSkorFromAnswers(answers),
+        status: tentukanStatusKey(hitungSkorFromAnswers(answers)),
+        statusLabel: tentukanStatusLabel(hitungSkorFromAnswers(answers)),
+        statusIcon: tentukanStatusIcon(hitungSkorFromAnswers(answers))
+    };
+}
+
+// ===== FUNGSI UTAMA — SUPABASE =====
+
+/**
+ * Menyimpan hasil skrining baru ke Supabase.
  * @param {Object} result - Data hasil skrining
- * @param {number[]} result.answers - Array 10 nilai jawaban (0-3)
- * @param {number} result.totalScore - Skor total
- * @param {string} result.status - Key status ('sehat'|'waspada'|'konsultasi')
- * @param {string} result.statusLabel - Label status ('Sehat / Normal', dll)
- * @param {string} result.statusIcon - Icon status ('✅', '⚠️', '🔴')
+ * @param {Object} result.answers - Objek jawaban { 'subj_foamy_urine': 0, ... }
+ * @param {number} result.totalScore - Skor total (0-20)
+ * @param {string} result.status - Key status
+ * @param {string} result.statusLabel - Label status
+ * @param {string} result.statusIcon - Icon status
+ * @returns {Object|null} Data yang tersimpan atau null jika gagal
  */
 async function saveScreeningResult(result) {
-    const screenings = getAllScreenings();
+    if (typeof currentUser === 'undefined' || !currentUser || !currentUser.id) {
+        console.warn('User belum login, data tidak disimpan ke Supabase');
+        return null;
+    }
 
-    const newEntry = {
-        id: 'screening_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-        answers: result.answers,
-        totalScore: result.totalScore,
-        status: result.status,
-        statusLabel: result.statusLabel,
-        statusIcon: result.statusIcon,
-        screeningDate: new Date().toISOString(),
-        createdAt: new Date().toISOString()
-    };
+    try {
+        const subjData = mapAnswersToSupabase(result.answers);
 
-    screenings.push(newEntry);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(screenings));
+        const { data, error } = await supabaseClient
+            .from('screening_data')
+            .insert({
+                user_id: currentUser.id,
+                ...subjData,
+                objective_gfr: Math.max(15, 120 - (result.totalScore * 6)),
+                objective_dipstick: { answers_snapshot: result.answers },
+                screening_date: new Date().toISOString(),
+                notes: 'Skor: ' + result.totalScore + '/20 - ' + result.statusLabel
+            })
+            .select()
+            .single();
 
-    // Simpan ke Supabase jika user sudah login
-    if (typeof currentUser !== 'undefined' && currentUser && currentUser.id) {
-        try {
-            // Map jawaban ke field screening_data
-            const answers = result.answers;
-            const foamyUrin = answers[2] >= 2; // Q3: urine berbusa
-            const colorMap = { 0: 'normal', 1: 'agak gelap', 2: 'gelap', 3: 'sangat gelap' };
-            const colorUrin = colorMap[answers[2]] || 'normal';
-
-            // Hitung GFR estimasi (simplified - berdasarkan skor)
-            // Dalam aplikasi nyata, GFR dihitung dari data medis
-            const estimatedGFR = Math.max(15, 120 - (result.totalScore * 3));
-
-            // Dipstick data (JSONB)
-            const dipstick = {
-                protein: answers[2] >= 1 ? 'positif' : 'negatif',
-                blood: answers[4] >= 2 ? 'positif' : 'negatif',
-                glucose: 'negatif',
-                answers_snapshot: answers
-            };
-
-            const { error } = await supabaseClient
-                .from('screening_data')
-                .insert({
-                    user_id: currentUser.id,
-                    subjective_foamy_urin: foamyUrin,
-                    subjective_color_urin: colorUrin,
-                    objective_gfr: estimatedGFR,
-                    objective_dipstick: dipstick,
-                    screening_date: new Date().toISOString(),
-                    notes: 'Skor: ' + result.totalScore + '/30 - ' + result.statusLabel
-                });
-
-            if (error) {
-                console.warn('Gagal simpan ke Supabase:', error);
-            }
-        } catch (e) {
-            console.warn('Error simpan ke Supabase:', e);
+        if (error) {
+            console.warn('Gagal simpan ke Supabase:', error);
+            return null;
         }
-    }
 
-    return newEntry;
-}
-
-/**
- * Mengambil semua data skrining dari localStorage.
- * @returns {Array} Array of screening objects, sorted descending by date
- */
-function getAllScreenings() {
-    try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
+        return {
+            id: data.id,
+            ...result,
+            screeningDate: data.screening_date,
+            createdAt: data.created_at
+        };
     } catch (e) {
-        console.warn('Gagal membaca localStorage:', e);
-        return [];
-    }
-}
-
-/**
- * Mengambil hasil skrining terakhir.
- * @returns {Object|null} Screening terakhir, atau null jika belum ada
- */
-function getLatestScreening() {
-    const screenings = getAllScreenings();
-    return screenings.length > 0 ? screenings[screenings.length - 1] : null;
-}
-
-/**
- * Mengambil hasil skrining berdasarkan ID.
- * @param {string} id - ID screening
- * @returns {Object|null}
- */
-function getScreeningById(id) {
-    const screenings = getAllScreenings();
-    return screenings.find(s => s.id === id) || null;
-}
-
-/**
- * Mengambil jumlah total skrining yang pernah dilakukan.
- * @returns {number}
- */
-function getScreeningCount() {
-    return getAllScreenings().length;
-}
-
-/**
- * Menghapus semua data skrining dari localStorage.
- */
-function clearAllData() {
-    localStorage.removeItem(STORAGE_KEY);
-}
-
-/**
- * Menyimpan kuesioner yang sedang berjalan (partial).
- * @param {Object} partial - { currentQuestion: number, answers: number[] }
- */
-function savePartialQuestionnaire(partial) {
-    const key = 'ginjal_partial';
-    const data = {
-        currentQuestion: partial.currentQuestion,
-        answers: partial.answers,
-        savedAt: new Date().toISOString()
-    };
-    localStorage.setItem(key, JSON.stringify(data));
-}
-
-/**
- * Mengambil kuesioner yang sedang berjalan.
- * @returns {Object|null} { currentQuestion, answers, savedAt } atau null
- */
-function getPartialQuestionnaire() {
-    try {
-        const data = localStorage.getItem('ginjal_partial');
-        return data ? JSON.parse(data) : null;
-    } catch (e) {
+        console.warn('Error simpan ke Supabase:', e);
         return null;
     }
 }
 
 /**
- * Menghapus kuesioner yang sedang berjalan.
+ * Mengambil semua data skrining dari Supabase.
+ * @returns {Promise<Array>}
+ */
+async function getAllScreenings() {
+    if (typeof currentUser === 'undefined' || !currentUser || !currentUser.id) return [];
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('screening_data')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .order('screening_date', { ascending: false });
+
+        if (error) { console.warn('Gagal mengambil data:', error); return []; }
+
+        return (data || []).map(row => {
+            const answers = mapSupabaseToAnswers(row);
+            const score = hitungSkorFromAnswers(answers);
+            return {
+                id: row.id, answers, totalScore: score,
+                status: tentukanStatusKey(score),
+                statusLabel: tentukanStatusLabel(score),
+                statusIcon: tentukanStatusIcon(score),
+                screeningDate: row.screening_date, createdAt: row.created_at
+            };
+        });
+    } catch (e) { console.warn('Error:', e); return []; }
+}
+
+/**
+ * Mengambil hasil skrining terakhir dari Supabase.
+ * @returns {Promise<Object|null>}
+ */
+async function getLatestScreening() {
+    if (typeof currentUser === 'undefined' || !currentUser || !currentUser.id) return null;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('screening_data')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .order('screening_date', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (error || !data) return null;
+
+        const answers = mapSupabaseToAnswers(data);
+        const score = hitungSkorFromAnswers(answers);
+        return {
+            id: data.id, answers, totalScore: score,
+            status: tentukanStatusKey(score),
+            statusLabel: tentukanStatusLabel(score),
+            statusIcon: tentukanStatusIcon(score),
+            screeningDate: data.screening_date, createdAt: data.created_at
+        };
+    } catch (e) { return null; }
+}
+
+/**
+ * Mengambil jumlah total skrining dari Supabase.
+ * @returns {Promise<number>}
+ */
+async function getScreeningCount() {
+    if (typeof currentUser === 'undefined' || !currentUser || !currentUser.id) return 0;
+
+    try {
+        const { count, error } = await supabaseClient
+            .from('screening_data')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', currentUser.id);
+
+        if (error) return 0;
+        return count || 0;
+    } catch (e) { return 0; }
+}
+
+/**
+ * Menghapus semua data skrining dari Supabase.
+ */
+async function clearAllData() {
+    if (typeof currentUser === 'undefined' || !currentUser || !currentUser.id) return;
+
+    try {
+        const { error } = await supabaseClient
+            .from('screening_data')
+            .delete()
+            .eq('user_id', currentUser.id);
+
+        if (error) console.warn('Gagal menghapus data:', error);
+    } catch (e) { console.warn('Error:', e); }
+}
+
+// ===== PARTIAL QUESTIONNAIRE (tetap localStorage) =====
+
+/**
+ * Menyimpan kuesioner yang sedang berjalan (partial) ke localStorage.
+ * @param {Object} partial - { currentQuestion: number, answers: Object }
+ */
+function savePartialQuestionnaire(partial) {
+    const data = {
+        currentQuestion: partial.currentQuestion,
+        answers: partial.answers,
+        savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(PARTIAL_KEY, JSON.stringify(data));
+}
+
+/**
+ * Mengambil kuesioner yang sedang berjalan dari localStorage.
+ * @returns {Object|null}
+ */
+function getPartialQuestionnaire() {
+    try {
+        const data = localStorage.getItem(PARTIAL_KEY);
+        return data ? JSON.parse(data) : null;
+    } catch (e) { return null; }
+}
+
+/**
+ * Menghapus kuesioner yang sedang berjalan dari localStorage.
  */
 function clearPartialQuestionnaire() {
-    localStorage.removeItem('ginjal_partial');
+    localStorage.removeItem(PARTIAL_KEY);
 }

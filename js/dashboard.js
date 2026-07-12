@@ -112,7 +112,7 @@ const HEALTH_TIPS = [
             </ol>
             <div class="sub-heading">Kapan Harus ke Dokter?</div>
             <ul class="accordion-list">
-                <li>Jika hasil skrining menunjukkan <strong>skor 13-30 (Konsultasi / Risiko Tinggi)</strong></li>
+                <li>Jika hasil skrining menunjukkan <strong>skor 11-20 (Risiko Tinggi / Gawat Darurat)</strong></li>
                 <li>Jika Anda memiliki <strong>2 atau lebih gejala</strong> yang disebutkan di atas</li>
                 <li>Jika ada <strong>riwayat keluarga</strong> dengan penyakit ginjal atau diabetes</li>
                 <li>Jika Anda mengonsumsi obat-obatan tertentu dalam jangka panjang</li>
@@ -131,8 +131,8 @@ const DashboardManager = {
      * Inisialisasi dashboard: render semua konten.
      * Dipanggil setiap kali halaman dashboard ditampilkan.
      */
-    init: function () {
-        const latestScreening = getLatestScreening();
+    init: async function () {
+        const latestScreening = await getLatestScreening();
         this.renderHealthStatus(latestScreening);
         this.renderQuestionnaireAccess(latestScreening);
         this.renderTipsPreview();
@@ -174,7 +174,7 @@ const DashboardManager = {
                 <div class="health-status">
                     <div class="health-status-icon">${screening.statusIcon}</div>
                     <span class="health-badge ${statusClass}" role="status">${screening.statusIcon} ${screening.statusLabel}</span>
-                    <p class="health-info">Skor: <strong>${screening.totalScore}</strong> dari 30</p>
+                    <p class="health-info">Skor: <strong>${screening.totalScore}</strong> dari 20</p>
                     <p class="health-info">Terakhir skrining: <strong>${formatDateIndonesia(screening.screeningDate)}</strong></p>
                     <div class="health-actions">
                         <button class="btn btn-secondary" id="dashboard-btn-detail" type="button">
@@ -423,12 +423,12 @@ const DashboardManager = {
     /**
      * Merender halaman profil pengguna.
      */
-    renderProfile: function () {
+    renderProfile: async function () {
         var container = document.getElementById('profile-content');
         if (!container) return;
 
-        var screeningCount = getScreeningCount();
-        var latest = getLatestScreening();
+        var screeningCount = await getScreeningCount();
+        var latest = await getLatestScreening();
 
         // Ambil data user dari currentUser (Supabase) atau default
         var namaLengkap = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.namaLengkap : 'User1';
@@ -482,7 +482,7 @@ const DashboardManager = {
                         <i class="fa-solid fa-right-from-bracket"></i> Log Out
                     </button>
                     <p style="font-size:0.8rem;color:#a0aec0;margin-top:10px;">
-                        Anda akan keluar dari akun ini.
+                        Semua data skrining akan dihapus dari database.
                     </p>
                 </div>
             </div>
