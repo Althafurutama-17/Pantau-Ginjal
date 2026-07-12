@@ -1,430 +1,485 @@
-# 📋 Dokumentasi Aplikasi: Skrining Kesehatan Ginjal
-
-> **Versi:** 2.1.0  
-> **Tipe:** Single Page Application (SPA) — Client-side Only  
-> **Target Pengguna:** Masyarakat luas, khususnya lansia (≥60 tahun)  
-> **Bahasa:** Indonesia  
-> **File Utama:** `index.html` + `css/style.css` + `css/dashboard.css` + `js/app.js` + `js/storage.js` + `js/dashboard.js`  
-> **Ikon:** Font Awesome 6.5.1 + Material Icons (Google Fonts)
+# 📋 DOKUMENTASI APLIKASI
+## Skrining Kesehatan Ginjal — "Pantau Ginjal"
 
 ---
 
-## 📁 Struktur Folder
+## 1. RINGKASAN PROYEK
+
+| Item | Keterangan |
+|------|-----------|
+| **Nama** | Pantau Ginjal — Aplikasi Skrining Kesehatan Ginjal |
+| **Tipe** | Single Page Application (SPA) |
+| **Versi** | 2.0.0 |
+| **Bahasa** | HTML5 + CSS3 + Vanilla JavaScript |
+| **Backend** | Supabase (Auth + Database) |
+| **Target Pengguna** | Masyarakat umum, khususnya lansia (≥60 tahun) |
+| **Bahasa Konten** | Bahasa Indonesia |
+
+---
+
+## 2. STRUKTUR FILE
 
 ```
 EPIDEMIC UI/
-│
-├── index.html          # ★ Struktur halaman (HTML + CDN Font Awesome & Material Icons)
+├── index.html              ← Halaman utama SPA
+├── DOKUMENTASI.md          ← Dokumentasi ini
+├── README.md               ← Readme proyek
+├── github_code.md          ← Cheat sheet Git
+├── Logo 2.jpeg             ← Logo aplikasi
 ├── css/
-│   ├── style.css       # ★ Gaya tampilan global (kuesioner, hasil, modal)
-│   └── dashboard.css   # ★ Gaya tampilan dashboard & accordion (v2.0)
-├── js/
-│   ├── storage.js      # ★ localStorage wrapper (v2.0)
-│   ├── dashboard.js    # ★ Logika dashboard & konten edukasi (v2.0)
-│   └── app.js          # ★ Logika utama (navigasi, kuesioner, scoring)
-├── DOKUMENTASI.md      # ★ Dokumentasi ini
-├── README.md
-└── github_code.md
+│   ├── style.css           ← Gaya utama (pertanyaan, hasil, navigasi, dll)
+│   └── dashboard.css       ← Gaya halaman dashboard & profil
+└── js/
+    ├── supabase.js         ← Konfigurasi koneksi Supabase
+    ├── storage.js          ← Manajemen penyimpanan data (Supabase)
+    ├── dashboard.js        ← Logika halaman dashboard, profil, tips
+    └── app.js              ← Logika utama aplikasi
 ```
 
 ---
 
-## 🧩 Fitur Aplikasi
+## 3. TEKNOLOGI & DEPENDENSI
 
-| # | Fitur | Status |
-|---|-------|--------|
-| 1 | Halaman Beranda (sambutan + penjelasan) | ✅ Selesai |
-| 2 | Kuesioner 10 pertanyaan skala 0-3 | ✅ Selesai |
-| 3 | Progress bar (1/10 → 10/10) | ✅ Selesai |
-| 4 | Navigasi "Kembali" & "Selanjutnya" | ✅ Selesai |
-| 5 | Validasi jawaban (tombol disabled jika belum diisi) | ✅ Selesai |
-| 6 | Modal konfirmasi sebelum hasil | ✅ Selesai |
-| 7 | Penilaian otomatis 3 kategori | ✅ Selesai |
-| 8 | Tips spesifik per kategori (5 tips masing-masing) | ✅ Selesai |
-| 9 | Tombol "Kembali ke Beranda/Dashboard" | ✅ Selesai |
-| 10 | Desain ramah lansia (font ≥20px, tombol ≥56px) | ✅ Selesai |
-| 11 | Responsif (desktop, tablet, mobile) | ✅ Selesai |
-| 12 | Aksesibilitas (semantic HTML, aria-*, focus management) | ✅ Selesai |
-| 13 | **Dashboard 3 area (Status, Kuesioner, Tips)** | ✅ **v2.0** |
-| 14 | **localStorage — data tahan refresh** | ✅ **v2.0** |
-| 15 | **Tab navigasi (Dashboard / Riwayat / Profil)** | ✅ **v2.0** |
-| 16 | **Tips edukasi expandable (accordion)** | ✅ **v2.0** |
-| 17 | **Konten edukasi 4 kategori kesehatan ginjal** | ✅ **v2.0** |
-| 18 | **Partial save kuesioner** | ✅ **v2.0** |
-| 19 | **Halaman Login sederhana** | ✅ **v2.1** |
-| 20 | **Logout dengan konfirmasi + hapus data** | ✅ **v2.1** |
-| 21 | **Halaman Profil Pengguna** | ✅ **v2.1** |
-| 22 | **Font Awesome 6.5.1 + Material Icons** | ✅ **v2.1** |
+| Teknologi | Kegunaan |
+|-----------|----------|
+| **HTML5** | Struktur halaman |
+| **CSS3** | Gaya tampilan, responsif, animasi |
+| **Vanilla JavaScript** | Logika aplikasi (tanpa framework) |
+| **Supabase JS v2** | Backend-as-a-Service (Auth + Database) |
+| **Font Awesome 6.5** | Ikon UI |
+| **Material Icons** | Ikon tambahan |
+| **Google Fonts** | Font Segoe UI / Roboto |
+
+> **Catatan:** Tidak ada build tool, bundler, atau framework frontend. Aplikasi langsung dibuka via `file://` atau server lokal.
 
 ---
 
-## 🏗️ Arsitektur Aplikasi
+## 4. ARSITEKTUR APLIKASI
 
-### State Management (JavaScript)
+### 4.1 Alur Halaman (Page Flow)
+
+```
+┌─────────────┐
+│   LANDING   │  ← Halaman pembuka (belum login)
+└──────┬──────┘
+       │
+   ┌───┴───┐
+   │       │
+┌──▼──┐ ┌──▼─────┐
+│LOGIN│ │REGISTER│
+└──┬──┘ └──┬─────┘
+   │       │
+   └───┬───┘
+       │
+┌──────▼──────┐
+│  DASHBOARD  │  ← Halaman utama setelah login
+└──────┬──────┘
+       │
+   ┌───┼───────────┬──────────┐
+   │   │           │          │
+┌──▼───▼──┐ ┌──────▼──┐ ┌────▼────┐
+│QUESTION │ │  TIPS   │ │ PROFIL  │
+│NAIRE    │ │  PAGE   │ │  PAGE   │
+└──┬──────┘ └─────────┘ └─────────┘
+   │
+┌──▼──────┐
+│  HASIL  │  ← Tampilan hasil skrining
+└─────────┘
+```
+
+### 4.2 Halaman yang Tersedia
+
+| ID Halaman | Fungsi |
+|------------|--------|
+| `page-landing` | Halaman pembuka dengan tombol Login & Daftar |
+| `page-login` | Form login (username + password) |
+| `page-register` | Form registrasi (username, password, nama, jenis kelamin, tanggal lahir) |
+| `page-home` | Beranda informasi aplikasi |
+| `page-dashboard` | Dashboard utama — status kesehatan, akses kuesioner, tips |
+| `page-questionnaire` | Halaman kuesioner 10 pertanyaan |
+| `page-result` | Halaman hasil skrining |
+| `page-tips` | Halaman tips & edukasi kesehatan ginjal |
+| `page-profile` | Halaman profil pengguna |
+| `page-riwayat` | Halaman riwayat (dalam pengembangan) |
+
+---
+
+## 5. SISTEM AUTENTIKASI
+
+### 5.1 Login
+- Menggunakan **Supabase Auth** (`signInWithPassword`)
+- Karena Supabase Auth berbasis email, aplikasi membuat **email dummy** dari username:
+  ```
+  username → username@app-skrginjal.supabase.co
+  ```
+- Password dikirim langsung ke Supabase Auth
+
+### 5.2 Registrasi
+1. Cek keunikan username di tabel `users`
+2. Daftar ke Supabase Auth dengan email dummy
+3. Simpan profil pengguna ke tabel `users`
+
+### 5.3 Data User yang Disimpan
+
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| `id` | uuid | Primary key (dari Supabase Auth) |
+| `user_name` | varchar | Username unik |
+| `password_hash` | text | (kosong — auth dihandle Supabase) |
+| `nama_lengkap` | text | Nama lengkap |
+| `tanggal_lahir` | date | Tanggal lahir |
+| `jenis_kelamin` | varchar | Laki-laki / Perempuan |
+| `role` | varchar | Role user (default: `user`) |
+| `created_at` | timestamptz | Waktu pembuatan akun |
+| `updated_at` | timestamptz | Waktu update terakhir |
+
+---
+
+## 6. SISTEM SKRINING (KUESIONER)
+
+### 6.1 Pertanyaan
+
+Aplikasi memiliki **10 pertanyaan subjektif** berdasarkan indikator medis ginjal. Setiap pertanyaan memiliki **3 opsi jawaban** dengan nilai numerik:
+
+| Nilai | Label |
+|-------|-------|
+| 0 | Tidak pernah / Tidak ada perubahan |
+| 1 | Kadang-kadang / Perubahan ringan |
+| 2 | Sering / Perubahan jelas |
+
+### 6.2 Daftar 10 Pertanyaan
+
+| No | Kode Kolom | Pertanyaan | Periode |
+|----|-----------|------------|---------|
+| 1 | `subj_foamy_urine` | Frekuensi urine berbusa/berbuih | 1 minggu |
+| 2 | `subj_pruritus` | Frekuensi gatal-gatal kulit tanpa sebab | 1 minggu |
+| 3 | `subj_fatigue` | Frekuensi mudah lelah tanpa sebab | 1 minggu |
+| 4 | `subj_edema` | Pembengkakan di kaki/pergelangan kaki | 1 minggu |
+| 5 | `subj_nocturia` | Terbangun malam untuk BAKe (>2 kali) | 1 minggu |
+| 6 | `subj_dry_mouth` | Frekuensi mulut terasa kering | 1 minggu |
+| 7 | `subj_taste_change` | Perubahan rasa di mulut | 1 minggu |
+| 8 | `subj_nail_change` | Perubahan pada kuku (pucat, rapuh) | 1 bulan |
+| 9 | `subj_skin_change` | Perubahan pada kulit (kering, pucat) | 1 bulan |
+| 10 | `subj_sleep_disturbance` | Kesulitan tidur / tidur tidak nyenyak | 1 minggu |
+
+### 6.3 Sistem Penilaian
+
+```
+Total Skor = Jumlah semua jawaban (0-2 per pertanyaan)
+Maksimal Skor = 20 (10 × 2)
+```
+
+| Skor | Level | Status | Icon | Deskripsi |
+|------|-------|--------|------|-----------|
+| 0–5 | 1 | Sehat | ✅ | Kondisi ginjal tampak normal |
+| 6–10 | 2 | Waspada | ⚠️ | Perlu diperhatikan, periksakan ke dokter dalam 2 minggu |
+| 11–15 | 3 | Risiko Tinggi | 🔴 | Segera konsultasi ke dokter spesialis ginjal dalam 1 minggu |
+| 16–20 | 4 | Gawat Darurat | 🚨 | Memerlukan penanganan medis segera |
+
+---
+
+## 7. DATABASE SUPABASE
+
+### 7.1 Tabel `users`
+
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| `id` | uuid | Primary key |
+| `user_name` | varchar | Username unik |
+| `password_hash` | text | (kosong) |
+| `nama_lengkap` | text | Nama lengkap |
+| `tanggal_lahir` | date | Tanggal lahir |
+| `jenis_kelamin` | varchar | Jenis kelamin |
+| `role` | varchar | Role user |
+| `created_at` | timestamptz | Waktu dibuat |
+| `updated_at` | timestamptz | Waktu diupdate |
+
+### 7.2 Tabel `screening_data`
+
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| `id` | uuid | Primary key |
+| `user_id` | uuid | Foreign key → `users.id` |
+| `screening_date` | timestamptz | Waktu skrining |
+| `hasil` | text | JSON string hasil perhitungan |
+| `subj_foamy_urine` | int4 | Skor urine berbusa (0-2) |
+| `subj_pruritus` | int4 | Skor gatal-gatal (0-2) |
+| `subj_fatigue` | int4 | Skor kelelahan (0-2) |
+| `subj_edema` | int4 | Skor pembengkakan (0-2) |
+| `subj_nocturia` | int4 | Skor nokturia (0-2) |
+| `subj_dry_mouth` | int4 | Skor mulut kering (0-2) |
+| `subj_taste_change` | int4 | Skor perubahan rasa (0-2) |
+| `subj_nail_change` | int4 | Skor perubahan kuku (0-2) |
+| `subj_skin_change` | int4 | Skor perubahan kulit (0-2) |
+| `subj_sleep_disturbance` | int4 | Skor gangguan tidur (0-2) |
+
+### 7.3 Format Kolom `hasil` (JSON string)
+
+```json
+{
+    "skor": 8,
+    "status": "waspada",
+    "statusLabel": "Waspada",
+    "statusIcon": "⚠️",
+    "level": 2,
+    "deskripsi": "Terdapat beberapa gejala yang perlu diperhatikan..."
+}
+```
+
+> **Catatan:** Kolom `hasil` bertipe `text`, bukan `jsonb`. Data disimpan sebagai string JSON dan di-parse saat dibaca.
+
+---
+
+## 8. MANAJEMEN DATA (storage.js)
+
+### 8.1 Prinsip Penyimpanan
+
+| Jenis Data | Media Penyimpanan | Keterangan |
+|------------|-------------------|------------|
+| Data skrining | **Supabase** | Full cloud — setiap user 1 baris data (upsert) |
+| Kuesioner partial | **localStorage** | Hanya saat user belum login / sedang mengisi |
+| Sesi login | **Supabase Auth** | Handle oleh Supabase SDK |
+
+### 8.2 Fungsi Utama
+
+| Fungsi | Tipe | Keterangan |
+|--------|------|------------|
+| `saveScreeningResult(result)` | async | **UPSERT** — update jika sudah ada, insert jika baru |
+| `getAllScreenings()` | async | Ambil semua data skrining user dari Supabase |
+| `getLatestScreening()` | async | Ambil data skrining terakhir |
+| `getScreeningCount()` | async | Hitung jumlah skrining user |
+| `clearAllData()` | async | Hapus semua data skrining user |
+| `savePartialQuestionnaire(partial)` | sync | Simpan progress kuesioner ke localStorage |
+| `getPartialQuestionnaire()` | sync | Ambil progress kuesioner dari localStorage |
+| `clearPartialQuestionnaire()` | sync | Hapus progress kuesioner dari localStorage |
+
+### 8.3 Mekanisme UPSERT
+
+```
+User isi kuesioner → Simpan ke Supabase
+                        │
+                   ┌────▼────┐
+                   │ Cek: apakah │
+                   │ user sudah  │
+                   │ punya data? │
+                   └────┬────┘
+                    │       │
+                 YA │       │ TIDAK
+                    ▼       ▼
+               UPDATE    INSERT
+            (ganti data  (buat baris
+             lama)        baru)
+```
+
+> **Penting:** Setiap user hanya memiliki **1 baris data** di tabel `screening_data`. Jika user mengisi ulang, data lama akan diganti (update), bukan ditambah baris baru.
+
+---
+
+## 9. STATE MANAGEMENT (app.js)
+
+### 9.1 State Global
 
 ```javascript
-let isLoggedIn = false;  // Status login
+let isLoggedIn = false;    // Status login
+let currentUser = null;    // Data user yang login
 
 const state = {
-    currentPage: 'login',   // 'login' | 'dashboard' | 'questionnaire' | 'result' | 'profile'
-    currentQuestion: 0,     // index pertanyaan (0-9)
-    answers: [null, null, ...]  // array 10 nilai jawaban (0-3)
+    currentPage: 'login',  // Halaman aktif
+    currentQuestion: 0,    // Indeks pertanyaan (0-9)
+    answers: {}            // Jawaban: { 'subj_foamy_urine': 0, ... }
 };
 ```
 
-### Alur Navigasi (v2.1)
+### 9.2 Alur Kuesioner
 
 ```
-[Login] ──"Log In"──▶ [Dashboard] ◀── "Kembali ke Dashboard"
-   ▲                       │
-   │                       │ "Mulai / Isi Ulang / Lanjutkan"
-   │                       ▼
-   │               [Kuesioner Q1..Q10]
-   │                       │
-   │               (setelah Q10)
-   │                       │
-   │                       ▼
-   │               [Modal Konfirmasi]
-   │                /              \
-   │          "Kembali"      "Ya, Tampilkan Hasil"
-   │               │              │
-   │               ▼              ▼
-   │          [Kuesioner]    [Halaman Hasil]
-   │                              │
-   │                      "Kembali ke Dashboard"
-   │                              │
-   │                              ▼
-   │                         [Dashboard]
-   │                    ┌──────┼──────┐
-   │                    │      │      │
-   │               [Tab:   [Tab:   [Tab:
-   │              Dashboard] Riwayat] Profil]
-   │                              │
-   │                              ▼
-   │                         [Profil]
-   │                     [Tombol Log Out]
-   │                     "Yakin? Hapus data?"
-   └──────────────────── (data dihapus) ───┘
+startQuestionnaire()
+    │
+    ▼
+renderQuestion()  ←──── renderNavButtons()
+    │                      │
+    ▼                      ▼
+User pilih jawaban    [Beranda] [← Kembali] [Selanjutnya →]
+    │
+    ▼
+nextQuestion()
+    │
+    ├── Pertanyaan belum terakhir → renderQuestion() lagi
+    │
+    └── Pertanyaan terakhir → showConfirmationModal()
+                                    │
+                                    ▼
+                              [Ya, Tampilkan Hasil]
+                                    │
+                                    ▼
+                              showResult()
+                                    │
+                                    ▼
+                              saveScreeningResult() → Supabase
+                                    │
+                                    ▼
+                              Tampilkan halaman hasil
 ```
 
-### File-File Baru (v2.0)
+---
 
-| File | Tugas |
-|------|-------|
-| `js/storage.js` | Wrapper localStorage — simpan/ambil hasil skrining & partial kuesioner |
-| `js/dashboard.js` | Dashboard manager — render status, kuesioner, tips accordion |
-| `css/dashboard.css` | Gaya dashboard, kartu, navigasi tab, accordion, responsif |
+## 10. FITUR APLIKASI
 
-### Fungsi-Fungsi Utama (JavaScript)
+### 10.1 Dashboard
+- **Status Kesehatan** — Menampilkan hasil skrining terakhir (skor, status, deskripsi)
+- **Akses Kuesioner** — Mulai baru, lanjutkan, atau isi ulang
+- **Tips Kesehatan** — Preview 2 tips pertama
 
-| Fungsi | File | Tugas |
-|--------|------|-------|
-| `showPage(pageName)` | app.js | Pindah halaman (login/dashboard/profile/questionnaire/result) |
-| `renderNavButtons()` | app.js | Render tombol navigasi sesuai halaman aktif |
-| `login()` | app.js | Login sebagai User1 → dashboard |
-| `logout()` | app.js | Konfirmasi → hapus semua data → balik ke login |
-| `startQuestionnaire()` | app.js | Mulai kuesioner baru (reset + clear partial) |
-| `resumeQuestionnaire()` | app.js | Lanjutkan kuesioner dari partial save |
-| `showLastResult()` | app.js | Tampilkan hasil skrining terakhir dari localStorage |
-| `renderQuestion()` | app.js | Tampilkan pertanyaan + opsi jawaban |
-| `updateProgress()` | app.js | Update progress bar (persentase & teks) |
-| `prevQuestion()` | app.js | Pindah ke pertanyaan sebelumnya |
-| `nextQuestion()` | app.js | Simpan jawaban → partial save → pindah / modal |
-| `hitungSkor()` | app.js | Jumlahkan semua nilai jawaban |
-| `tentukanStatus(skor)` | app.js | Tentukan kategori berdasarkan skor |
-| `showResult()` | app.js | Hitung skor + save ke localStorage + tampilkan hasil |
-| `restartApp()` | app.js | Reset state + kembali ke dashboard |
-| `saveScreeningResult()` | storage.js | Simpan hasil skrining ke localStorage |
-| `getLatestScreening()` | storage.js | Ambil hasil skrining terakhir |
-| `savePartialQuestionnaire()` | storage.js | Simpan progress kuesioner parsial |
-| `clearAllData()` | storage.js | Hapus semua data (dipanggil saat logout) |
-| `DashboardManager.init()` | dashboard.js | Inisialisasi dashboard (render semua kartu) |
-| `DashboardManager.renderProfile()` | dashboard.js | Render halaman profil & tombol logout |
-| `formatDateIndonesia()` | dashboard.js | Format tanggal ke format Indonesia |
+### 10.2 Kuesioner
+- 10 pertanyaan ditampilkan **satu per satu**
+- Progress bar real-time
+- Navigasi: Beranda, Kembali, Selanjutnya
+- Modal konfirmasi sebelum melihat hasil
+- Progress tersimpan otomatis (localStorage)
+
+### 10.3 Halaman Hasil
+- Ikon status (✅ ⚠️ 🔴 🚨)
+- Badge status (Sehat / Waspada / Risiko Tinggi / Gawat Darurat)
+- Skor total (0-20)
+- Deskripsi hasil
+- Tips kesehatan spesifik sesuai status
+
+### 10.4 Tips & Edukasi
+- 4 topik edukasi dalam format accordion:
+  1. Apa itu Penyakit Ginjal?
+  2. Mengapa Ginjal Penting?
+  3. Gejala & Indikasi Awal
+  4. Pencegahan & Penanganan
+
+### 10.5 Profil
+- Informasi pengguna (username, nama, jenis kelamin, tanggal lahir)
+- Statistik skrining (total, terakhir)
+- Tombol logout
+
+### 10.6 Autentikasi
+- Login dengan username & password
+- Registrasi akun baru
+- Logout dengan konfirmasi
 
 ---
 
-## 📝 Data Pertanyaan
+## 11. TAMPILAN & RESPONSIVITAS
 
-### 10 Pertanyaan Skrining
+### 11.1 Breakpoints
 
-| # | Pertanyaan |
-|---|-----------|
-| 1 | Seberapa sering Anda merasa mudah lelah tanpa sebab yang jelas? |
-| 2 | Seberapa sering Anda mengalami pembengkakan di kaki atau pergelangan kaki? |
-| 3 | Seberapa sering urine (air kencing) Anda berbusa atau tampak berbuih? |
-| 4 | Seberapa sering Anda buang air kecil di malam hari (lebih dari 2 kali)? |
-| 5 | Seberapa sering Anda merasakan nyeri atau pegal di bagian pinggang belakang? |
-| 6 | Seberapa sering Anda mengalami penurunan nafsu makan? |
-| 7 | Seberapa sering Anda merasa gatal-gatal pada kulit tanpa sebab yang jelas? |
-| 8 | Seberapa sering Anda mengalami sesak napas setelah melakukan aktivitas ringan? |
-| 9 | Seberapa sering Anda merasa mual atau ingin muntah? |
-| 10 | Apakah Anda memiliki riwayat tekanan darah tinggi (hipertensi)? |
+| Breakpoint | Deskripsi |
+|------------|-----------|
+| ≤ 400px | Mobile kecil |
+| ≤ 600px | Mobile |
+| ≤ 768px | Tablet |
+| > 1024px | Desktop (max-width: 1000px) |
 
-### Opsi Jawaban (Skala)
+### 11.2 Fitur Aksesibilitas
+- Font size minimum **20px** (ramah lansia)
+- Radio button besar dengan label jelas
+- ARIA attributes pada elemen interaktif
+- Keyboard navigation support
+- Warna kontras tinggi
 
-| Opsi | Nilai | Keterangan |
-|------|:-----:|------------|
-| Tidak Pernah | 0 | Tidak pernah mengalami |
-| Kadang-kadang | 1 | Jarang, beberapa kali dalam sebulan |
-| Sering | 2 | Beberapa kali dalam seminggu |
-| Sangat Sering | 3 | Hampir setiap hari |
+### 11.3 Warna Utama
 
----
-
-## 📊 Sistem Penilaian
-
-### Rumus Skor
-
-```
-Skor Total = jumlah dari seluruh nilai jawaban (0-3 per pertanyaan)
-           = minimal 0, maksimal 30
-```
-
-### Kategori Status
-
-| Rentang Skor | Status | Icon | Warna Badge |
-|:------------:|--------|:----:|:-----------:|
-| 0 – 5 | ✅ **Sehat / Normal** | ✅ | Hijau (`#28a745`) |
-| 6 – 12 | ⚠️ **Waspada / Risiko Ringan** | ⚠️ | Kuning (`#ffc107`) |
-| 13 – 30 | 🔴 **Konsultasi / Risiko Tinggi** | 🔴 | Merah (`#dc3545`) |
+| Variabel | Kode | Kegunaan |
+|----------|------|----------|
+| Biru Gelap | `#0a5c8a` | Header, aksen utama |
+| Biru Medium | `#1a7fc4` | Tombol, progress bar |
+| Hijau | `#28a745` | Status sehat |
+| Kuning | `#ffc107` | Status waspada |
+| Merah | `#dc3545` | Status risiko tinggi |
+| Merah Tua | `#721c24` | Status gawat darurat |
 
 ---
 
-## 💡 Tips Kesehatan (5 Tips per Kategori)
+## 12. CARA MENJALANKAN
 
-### ✅ Sehat / Normal (Skor 0-5)
+### 12.1 Langsung (file://)
+Buka `index.html` di browser. Semua file JS/CSS dimuat relatif.
 
-1. **Pertahankan pola makan rendah garam** — batasi konsumsi garam maksimal 1 sendok teh (5 gram) per hari untuk menjaga tekanan darah tetap stabil.
-2. **Minum air putih minimal 8 gelas** (sekitar 2 liter) setiap hari, kecuali ada kondisi khusus yang membatasi asupan cairan.
-3. **Rutin memeriksakan tekanan darah** minimal sebulan sekali, karena hipertensi adalah salah satu faktor risiko utama penyakit ginjal.
-4. **Hindari konsumsi obat pereda nyeri golongan NSAID** (seperti ibuprofen) secara berlebihan, karena dapat memengaruhi fungsi ginjal dalam jangka panjang.
-5. **Lakukan aktivitas fisik ringan** seperti jalan kaki selama 30 menit setiap hari untuk menjaga sirkulasi darah tetap lancar.
+### 12.2 Server Lokal
+```bash
+# Menggunakan Python
+python -m http.server 8000
 
-### ⚠️ Waspada / Risiko Ringan (Skor 6-12)
+# Menggunakan Node.js
+npx serve .
 
-1. **Kurangi konsumsi protein hewani** (daging merah, unggas, telur) dan makanan olahan (sosis, nugget, makanan kaleng) karena membebani kerja ginjal.
-2. **Perbanyak konsumsi buah dan sayur segar** — terutama yang rendah kalium seperti apel, anggur, kol, dan mentimun.
-3. **Segera periksakan gula darah dan tekanan darah** secara rutin minimal 2 minggu sekali untuk memantau kondisi tubuh.
-4. **Batasi konsumsi makanan tinggi garam** seperti keripik, mie instan, dan acar. Gunakan bumbu alami sebagai pengganti garam.
-5. **Hindari minuman beralkohol dan kurangi minuman berkafein** (kopi, teh kental) karena dapat memengaruhi tekanan darah dan hidrasi tubuh.
-
-### 🔴 Konsultasi / Risiko Tinggi (Skor 13-30)
-
-1. **Segera konsultasikan ke dokter spesialis ginjal (nefrologi)** dalam waktu 1–2 minggu untuk pemeriksaan lebih lanjut seperti tes darah (kreatinin, ureum) dan tes urine.
-2. **Hindari konsumsi obat-obatan bebas** terutama golongan NSAID (seperti aspirin, ibuprofen, diklofenak) karena dapat memperburuk kerusakan ginjal.
-3. **Batasi asupan makanan tinggi kalium** (pisang, jeruk, kentang, tomat, bayam) **dan tinggi fosfor** (keju, susu, kacang-kacangan, minuman bersoda) — konsultasikan dengan dokter mengenai batas aman untuk Anda.
-4. **Pantau jumlah urine setiap hari** — jika volume urine berkurang drastis atau justru berlebihan di malam hari, segera laporkan ke dokter.
-5. **Jangan menunda pemeriksaan** meskipun merasa tidak ada keluhan berarti. Deteksi dan penanganan dini sangat penting untuk memperlambat perkembangan penyakit ginjal.
-
----
-
-## 🎨 Panduan Desain (Elderly-Friendly)
-
-### Warna
-
-```css
-/* Tema Utama: Biru & Putih */
---biru-gelap:    #0a5c8a;   /* Header, judul */
---biru-medium:   #1a7fc4;   /* Tombol utama, aksen */
---biru-terang:   #2a9df4;   /* Gradien, hover */
---putih:         #ffffff;    /* Background kontainer */
---krem:          #f7fafc;    /* Background tips */
---teks-utama:    #1a1a2e;   /* Warna teks (hitam kebiruan) */
---teks-secondary:#718096;    /* Teks pendukung */
---latar-belakang:#e8f4fd;    /* Background body */
+# Menggunakan PHP
+php -S localhost:8000
 ```
 
-### Tipografi
-
-- **Font size minimal:** 20px (`html { font-size: 20px }`)
-- **Font:** `'Segoe UI', 'Roboto', 'Arial', sans-serif`
-- **Berat font:** 400 (regular), 500 (medium), 600 (semibold), 700 (bold)
-
-### Tombol
-
-- **Min-height:** 56px (≥50px sesuai requirements)
-- **Min-width:** 160px (140px di tablet, 120px di mobile)
-- **Border-radius:** 14px
-- **Padding:** 12px 36px
-- **Font-size:** 1.05rem (~21px)
-- **Font-weight:** 700 (bold)
-- **Efek:** Hover → translateY(-2px), Active → translateY(0)
-
-### Layout
-
-- **Max-width kontainer:** 800px
-- **Border-radius kontainer:** 24px
-- **Gap antar elemen:** 12-16px
-- **Padding dalam kontainer:** 32px
-
-### Aksesibilitas
-
-- Semantic HTML: `<header>`, `<main>`, `<footer>`, `<section>`, `<nav>`
-- `role="application"`, `role="radiogroup"`, `role="dialog"`, `role="progressbar"`
-- `aria-label`, `aria-labelledby`, `aria-modal`, `aria-valuenow`
-- `aria-hidden="true"` untuk elemen dekoratif
-- `label` dengan `for` pada radio buttons
-- `focus-visible` outline pada tombol
-- Fokus terkelola saat pindah halaman
-
-### Responsive Breakpoints
-
-| Device | Max-width | Perubahan |
-|--------|:---------:|-----------|
-| Mobile kecil | 400px | Font 18px, tombol full-width, nav vertikal |
-| Mobile/Tablet | 600px | Padding dikurangi, modal full-width |
-| Desktop | >600px | Layout normal |
+Buka `http://localhost:8000` di browser.
 
 ---
 
-## 🧪 Skenario Testing
+## 13. KEAMANAN &Catatan Penting
 
-### Test Case 1: Sehat / Normal
+### 13.1 Supabase Anon Key
+- Anon key Supabase terekspos di `js/supabase.js`
+- **Pastikan RLS (Row Level Security) aktif** di Supabase Dashboard
+- RLS harus membatasi akses hanya untuk user yang login
 
-| Langkah | Tindakan | Hasil Diharapkan |
-|---------|----------|------------------|
-| 1 | Buka `index.html` | Halaman Beranda tampil |
-| 2 | Klik "Mulai Kuesioner" | Pertanyaan 1 tampil, progress 10% |
-| 3 | Jawab semua "Tidak Pernah" (nilai 0) | Skor = 0 |
-| 4 | Klik "Selanjutnya" di Q10 | Modal konfirmasi muncul |
-| 5 | Klik "Ya, Tampilkan Hasil" | Status: "Sehat / Normal" ✅ |
+### 13.2 Password
+- Password dikirim langsung ke Supabase Auth (tidak disimpan di aplikasi)
+- Kolom `password_hash` di tabel `users` dikosongkan
 
-### Test Case 2: Waspada / Risiko Ringan
-
-| Langkah | Tindakan | Hasil Diharapkan |
-|---------|----------|------------------|
-| 1 | Jawab: Q1=Kadang(1), Q2=Kadang(1), Q3=Sering(2), Q4=Kadang(1), Q5=Sering(2), Q6=Tidak(0), Q7=Kadang(1), Q8=Tidak(0), Q9=Tidak(0), Q10=Kadang(1) | Skor = 9 |
-| 2 | Lanjut ke hasil | Status: "Waspada / Risiko Ringan" ⚠️ |
-
-### Test Case 3: Konsultasi / Risiko Tinggi
-
-| Langkah | Tindakan | Hasil Diharapkan |
-|---------|----------|------------------|
-| 1 | Jawab semua "Sangat Sering" (nilai 3) | Skor = 30 |
-| 2 | Lanjut ke hasil | Status: "Konsultasi / Risiko Tinggi" 🔴 |
-
-### Test Case 4: Navigasi & UX
-
-| Langkah | Tindakan | Hasil Diharapkan |
-|---------|----------|------------------|
-| 1 | Jangan pilih jawaban | Tombol "Selanjutnya" disabled |
-| 2 | Klik "Kembali" dari Q2 | Kembali ke Q1, jawaban tetap tersimpan |
-| 3 | Di modal, klik "Kembali" | Kembali ke kuesioner |
-| 4 | Di hasil, klik "Kembali ke Beranda" | Kembali ke beranda, semua reset |
-| 5 | Tekan tombol Escape di modal | Modal tertutup |
+### 13.3 Data Sensitif
+- Email dummy hanya untuk auth, tidak ditampilkan ke user
+- Semua data skrining tersimpan di cloud (Supabase)
 
 ---
 
-## 🚀 Cara Menjalankan
+## 14. STATUS & RIWAYAT PERUBAHAN
 
-### Prasyarat
-- Browser modern (Chrome, Firefox, Edge, Safari)
-- Tidak perlu server — langsung buka file
+### v2.0.0 (Current)
+- ✅ 10 pertanyaan subjektif baru berdasarkan literatur medis
+- ✅ Sistem skor 0-20 (4 level status)
+- ✅ Full Supabase storage (upsert — data lama diganti)
+- ✅ Kolom `hasil` menyimpan JSON hasil perhitungan
+- ✅ Tampilan deskripsi hasil di dashboard & halaman hasil
+- ✅ Profil tanpa field email
+- ✅ Responsive & ramah lansia
 
-### Langkah
-1. Buka Windows Explorer
-2. Navigasi ke folder `EPIDEMIC UI`
-3. Double klik `index.html`
-4. Atau drag & drop file ke browser
+### v1.1.0
+- Multi-file structure
+- Login & registrasi dengan Supabase Auth
+- Dashboard dengan tips edukasi
 
-### Alur Penggunaan
-1. **Login** → Klik "Log In" (masuk sebagai User1)
-2. **Dashboard** → Lihat status, mulai kuesioner, baca tips
-3. **Kuesioner** → Jawab 10 pertanyaan
-4. **Hasil** → Lihat skor & tips kesehatan
-5. **Dashboard** → Status terbaru tampil
-6. **Profil** → Lihat data user, klik "Log Out" jika ingin keluar
-
-### Catatan
-- ✅ Membutuhkan **koneksi internet** (untuk load Font Awesome & Material Icons dari CDN)
-- ✅ Tidak perlu server — langsung buka file
-- ✅ Data skrining tersimpan di **localStorage** — tidak hilang saat refresh atau ditutup
-- ✅ Logout otomatis menghapus semua data
-- Untuk menghapus data manual: buka DevTools → Application → Local Storage → hapus key `ginjal_screenings`
-- Atau panggil `clearAllData()` di console browser
+### v1.0.0
+- Single file HTML
+- 10 pertanyaan dengan skala 0-3
+- localStorage saja
 
 ---
 
-## 🔮 Rencana Pengembangan ke Depan
+## 15. LAMPIRAN: SKEMA RELASI DATABASE
 
-### ✅ Sudah Tercapai (v2.0)
-- [x] Pisahkan CSS ke file `css/style.css` ✅ (v1.1)
-- [x] Pisahkan JS ke file `js/app.js` ✅ (v1.1)
-- [x] Tambah `localStorage` agar jawaban tidak hilang saat refresh ✅ (v2.0)
-- [x] Dashboard 3 area (Status, Kuesioner, Tips) ✅ (v2.0)
-- [x] Navigasi tab (Dashboard / Riwayat / Profil) ✅ (v2.0)
-- [x] Tips edukasi expandable (accordion) ✅ (v2.0)
-- [x] Partial save kuesioner ✅ (v2.0)
-
-### ✅ Sudah Tercapai (v2.1)
-- [x] Font Awesome 6.5.1 + Material Icons ✅ (v2.1)
-- [x] Halaman Login sederhana ✅ (v2.1)
-- [x] Halaman Profil dengan data user ✅ (v2.1)
-- [x] Logout dengan konfirmasi + hapus semua data ✅ (v2.1)
-
-### Jangka Pendek (v2.2)
-- [ ] Halaman riwayat hasil skrining (Riwayat tab)
-- [ ] Grafik perkembangan skor dari waktu ke waktu
-- [ ] Ekspor hasil ke PDF
-- [ ] Fitur edit profil pengguna
-
-### Jangka Menengah (v2.3+)
-- [ ] PWA (Progressive Web App) — bisa di-install di HP
-- [ ] Dark mode
-- [ ] Pengingat skrining berkala
-
-### Jangka Panjang (butuh Backend + Database)
-- [ ] Backend menggunakan Node.js atau Python
-- [ ] Database MySQL / SQLite / Supabase untuk menyimpan data user
-- [ ] Fitur register & multi-user
-- [ ] Dashboard admin untuk melihat data agregat
+```
+┌──────────────────────┐         ┌──────────────────────────┐
+│       users          │         │     screening_data       │
+├──────────────────────┤         ├──────────────────────────┤
+│ id (uuid) PK ────────┼────┬────│ user_id (uuid) FK        │
+│ user_name (varchar)  │    │    │ id (uuid) PK             │
+│ password_hash (text) │    │    │ screening_date (timestz) │
+│ nama_lengkap (text)  │    │    │ hasil (text) JSON        │
+│ tanggal_lahir (date) │    │    │ subj_foamy_urine (int4)  │
+│ jenis_kelamin (var)  │    │    │ subj_pruritus (int4)     │
+│ role (varchar)       │    │    │ subj_fatigue (int4)      │
+│ created_at (timestz) │    │    │ subj_edema (int4)        │
+│ updated_at (timestz) │    │    │ subj_nocturia (int4)     │
+└──────────────────────┘    │    │ subj_dry_mouth (int4)    │
+                            │    │ subj_taste_change (int4) │
+                            │    │ subj_nail_change (int4)   │
+                            │    │ subj_skin_change (int4)   │
+                            │    │ subj_sleep_disturb (int4) │
+                            │    └──────────────────────────┘
+                            │
+                            └── Relasi: 1 user → 1 baris screening_data (UPSERT)
+```
 
 ---
 
-## 📚 Istilah Penting (untuk Pemula)
-
-| Istilah | Arti | Contoh di Aplikasi |
-|---------|------|-------------------|
-| **Frontend** | Bagian aplikasi yang dilihat user | HTML, CSS, JavaScript di `index.html` |
-| **Backend** | Logika di server yang tidak terlihat user | Belum ada di aplikasi ini |
-| **Database** | Tempat penyimpanan data terstruktur | Belum ada (masih di memori sementara) |
-| **localStorage** | Penyimpanan kecil di browser | Rencana: untuk simpan jawaban |
-| **SPA** (Single Page Application) | Aplikasi satu halaman, tidak reload | Aplikasi ini |
-| **API** | Jembatan komunikasi antar aplikasi | Belum ada |
-| **CSS** | Bahasa untuk styling tampilan | Warna, ukuran, layout |
-| **JavaScript** | Bahasa untuk logika & interaksi | Navigasi, scoring, modal |
-| **HTML** | Bahasa untuk struktur halaman | Header, konten, tombol |
-| **Responsif** | Tampilan menyesuaikan ukuran layar | Desktop → Tablet → HP |
-
----
-
-## 📞 Kontak & Informasi
-
-**Dibuat oleh:** GitHub Copilot (DeepSeek V4 Flash)  
-**Tanggal:** 2026-07-07  
-**Framework:** Vanilla JavaScript (tanpa library/framework)  
-**Ikon:** Font Awesome 6.5.1 + Material Icons  
-**Versi:** 2.1.0 — Dashboard + Login + localStorage + Edukasi  
-
----
-
-> ⚠️ **DISCLAIMER**  
-> Aplikasi ini hanya memberikan indikasi awal dan bukan merupakan diagnosis medis.  
-> Hasil skrining tidak menggantikan konsultasi langsung dengan tenaga kesehatan profesional.  
-> Jika Anda memiliki keluhan atau kekhawatiran tentang kesehatan ginjal, segera konsultasikan ke dokter.
-
-Notes
-id
-user_name
-password
-
-Nama Lengkap
-Tanggal Lahir
-Jenis Kelamin
-
-subjective_foamy_urin
-subjective_color_urin
-
-objective_gfr
-objective_dipstick
+*Dokumentasi ini dibuat pada 12 Juli 2026.*

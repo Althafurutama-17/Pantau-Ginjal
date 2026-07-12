@@ -167,9 +167,10 @@ let isLoggedIn = false;  // Status login (false = belum login)
 let currentUser = null;  // Data user yang sedang login
 
 const state = {
-    currentPage: 'login',   // 'login' | 'dashboard' | 'questionnaire' | 'result' | 'profile'
-    currentQuestion: 0,     // indeks pertanyaan saat ini (0-9)
-    answers: {}             // Objek: { 'subj_foamy_urine': 0, 'subj_pruritus': 1, ... }
+    currentPage: 'login',
+    currentQuestion: 0,
+    answers: {},
+    objectiveData: null
 };
 
 // ===== REFERENSI DOM =====
@@ -205,6 +206,8 @@ const notifModalTitle = $('notifModalTitle');
 const notifModalText = $('notifModalText');
 const btnNotifClose = $('btnNotifClose');
 const appHeader = document.querySelector('header');
+const objectivePage = $('page-objective');
+const objectiveContainer = $('objectiveContainer');
 
 // ===== FUNGSI NAVIGASI HALAMAN =====
 function showPage(pageName) {
@@ -216,6 +219,7 @@ function showPage(pageName) {
     dashboardPage.classList.remove('active');
     profilePage.classList.remove('active');
     questionnairePage.classList.remove('active');
+    objectivePage.classList.remove('active');
     resultPage.classList.remove('active');
     tipsPage.classList.remove('active');
     riwayatPage.classList.remove('active');
@@ -271,6 +275,9 @@ function showPage(pageName) {
     } else if (pageName === 'questionnaire') {
         questionnairePage.classList.add('active');
         progressSection.classList.add('visible');
+    } else if (pageName === 'objective') {
+        objectivePage.classList.add('active');
+        progressSection.classList.remove('visible');
     } else if (pageName === 'result') {
         resultPage.classList.add('active');
         progressSection.classList.remove('visible');
@@ -358,6 +365,7 @@ async function showLastResult() {
 window.startQuestionnaire = startQuestionnaire;
 window.resumeQuestionnaire = resumeQuestionnaire;
 window.showLastResult = showLastResult;
+window.renderObjectiveForm = renderObjectiveForm;
 
 // ===== RENDER PERTANYAAN =====
 function renderQuestion() {
@@ -464,34 +472,14 @@ function hitungSkor() {
 
 // ===== FUNGSI MENENTUKAN STATUS KESEHATAN =====
 function tentukanStatus(skor) {
-    if (skor <= 5) {
-        return {
-            key: 'sehat',
-            label: 'Sehat',
-            icon: '<i class="fa-solid fa-circle-check"></i>',
-            color: 'sehat'
-        };
-    } else if (skor <= 10) {
-        return {
-            key: 'waspada',
-            label: 'Waspada',
-            icon: '<i class="fa-solid fa-triangle-exclamation"></i>',
-            color: 'waspada'
-        };
-    } else if (skor <= 15) {
-        return {
-            key: 'risiko_tinggi',
-            label: 'Risiko Tinggi',
-            icon: '<i class="fa-solid fa-circle-exclamation"></i>',
-            color: 'risiko_tinggi'
-        };
+    if (skor <= 8) {
+        return { key: 'sehat', label: 'Sehat', icon: '<i class="fa-solid fa-circle-check"></i>', color: 'sehat' };
+    } else if (skor <= 16) {
+        return { key: 'waspada', label: 'Waspada', icon: '<i class="fa-solid fa-triangle-exclamation"></i>', color: 'waspada' };
+    } else if (skor <= 24) {
+        return { key: 'risiko_tinggi', label: 'Risiko Tinggi', icon: '<i class="fa-solid fa-circle-exclamation"></i>', color: 'risiko_tinggi' };
     } else {
-        return {
-            key: 'gawat_darurat',
-            label: 'Gawat Darurat',
-            icon: '<i class="fa-solid fa-skull-crossbones"></i>',
-            color: 'gawat_darurat'
-        };
+        return { key: 'gawat_darurat', label: 'Gawat Darurat', icon: '<i class="fa-solid fa-skull-crossbones"></i>', color: 'gawat_darurat' };
     }
 }
 
@@ -525,11 +513,11 @@ function showConfirmationModal() {
     document.body.style.overflow = 'hidden';
 }
 
-// ===== KONFIRMASI MODAL: TAMPILKAN HASIL =====
+// ===== KONFIRMASI MODAL: KE FORM OBJEKTIF =====
 btnModalConfirm.addEventListener('click', function () {
     modalOverlay.classList.remove('active');
     document.body.style.overflow = '';
-    showResult();
+    renderObjectiveForm();
 });
 
 // ===== KONFIRMASI MODAL: KEMBALI =====
@@ -555,36 +543,171 @@ modalOverlay.addEventListener('keydown', function (e) {
     }
 });
 
-// ===== MENAMPILKAN HALAMAN HASIL (dari state saat ini) =====
-async function showResult() {
-    const skor = hitungSkor();
-    const status = tentukanStatus(skor);
+// ===== FORM DATA OBJEKTIF =====
+function renderObjectiveForm() {
+    const gender = currentUser ? currentUser.jenisKelamin : '';
+    const saved = state.objectiveData || {};
+
+    objectiveContainer.innerHTML = `
+        <div class="objective-header">
+            <h2><i class="fa-solid fa-flask"></i> Data Pemeriksaan Objektif</h2>
+            <p>Masukkan hasil pemeriksaan dari Puskesmas/Klinik (opsional)</p>
+        </div>
+
+        <div class="obj-section">
+            <div class="obj-section-title"><i class="fa-solid fa-heart-pulse"></i> ❤️ Tekanan Darah (mmHg)</div>
+            <div class="obj-row">
+                <div class="obj-field">
+                    <label for="objSystolic">Sistolik</label>
+                    <input type="number" id="objSystolic" class="form-input" placeholder="120" min="50" max="250" value="${saved.obj_systolic_bp || ''}">
+                </div>
+                <div class="obj-field">
+                    <label for="objDiastolic">Diastolik</label>
+                    <input type="number" id="objDiastolic" class="form-input" placeholder="80" min="30" max="150" value="${saved.obj_diastolic_bp || ''}">
+                </div>
+            </div>
+            <div class="obj-normal">Normal: &lt;120/80 mmHg</div>
+        </div>
+
+        <div class="obj-section">
+            <div class="obj-section-title"><i class="fa-solid fa-vial"></i> 🧪 Urine Dipstick</div>
+            <div class="obj-row">
+                <div class="obj-field">
+                    <label for="objProtein">Protein Urine</label>
+                    <select id="objProtein" class="form-input form-select">
+                        <option value="Negatif" ${saved.obj_urine_protein === 'Negatif' ? 'selected' : ''}>Negatif</option>
+                        <option value="+1" ${saved.obj_urine_protein === '+1' ? 'selected' : ''}>+1</option>
+                        <option value="+2" ${saved.obj_urine_protein === '+2' ? 'selected' : ''}>+2</option>
+                        <option value="+3" ${saved.obj_urine_protein === '+3' ? 'selected' : ''}>+3</option>
+                    </select>
+                </div>
+                <div class="obj-field">
+                    <label for="objGlucose">Glukosa Urine</label>
+                    <select id="objGlucose" class="form-input form-select">
+                        <option value="Negatif" ${saved.obj_urine_glucose === 'Negatif' ? 'selected' : ''}>Negatif</option>
+                        <option value="+1" ${saved.obj_urine_glucose === '+1' ? 'selected' : ''}>+1</option>
+                        <option value="+2" ${saved.obj_urine_glucose === '+2' ? 'selected' : ''}>+2</option>
+                        <option value="+3" ${saved.obj_urine_glucose === '+3' ? 'selected' : ''}>+3</option>
+                    </select>
+                </div>
+            </div>
+            <div class="obj-normal">Normal: Negatif untuk keduanya</div>
+        </div>
+
+        <div class="obj-section">
+            <div class="obj-section-title"><i class="fa-solid fa-droplet"></i> 🩸 Gula Darah (mg/dL)</div>
+            <div class="obj-field">
+                <label for="objGlucoseBlood">Gula Darah</label>
+                <input type="number" id="objGlucoseBlood" class="form-input" placeholder="100" min="50" max="500" value="${saved.obj_blood_glucose || ''}">
+            </div>
+            <div class="obj-normal">Normal puasa: &lt;100 | Sewaktu: &lt;140 mg/dL</div>
+        </div>
+
+        <div class="obj-section">
+            <div class="obj-section-title"><i class="fa-solid fa-database"></i> 🧈 Kolesterol Total (mg/dL)</div>
+            <div class="obj-field">
+                <label for="objCholesterol">Kolesterol</label>
+                <input type="number" id="objCholesterol" class="form-input" placeholder="200" min="50" max="500" value="${saved.obj_cholesterol || ''}">
+            </div>
+            <div class="obj-normal">Normal: &lt;200 mg/dL</div>
+        </div>
+
+        <div class="obj-section">
+            <div class="obj-section-title"><i class="fa-solid fa-syringe"></i> 💉 Hemoglobin (g/dL)${gender ? ' — ' + gender : ''}</div>
+            <div class="obj-field">
+                <label for="objHemoglobin">Hemoglobin</label>
+                <input type="number" id="objHemoglobin" class="form-input" placeholder="${gender === 'Laki-laki' ? '13' : '12'}" min="3" max="20" step="0.1" value="${saved.obj_hemoglobin || ''}">
+            </div>
+            <div class="obj-normal">Normal: ${gender === 'Laki-laki' ? 'Pria ≥13' : gender === 'Perempuan' ? 'Wanita ≥12' : 'Pria ≥13 / Wanita ≥12'} g/dL</div>
+        </div>
+
+        <div class="obj-section">
+            <div class="obj-section-title"><i class="fa-solid fa-calendar"></i> 📅 Tanggal Pemeriksaan</div>
+            <div class="obj-field">
+                <label for="objDate">Tanggal</label>
+                <input type="date" id="objDate" class="form-input" value="${saved.obj_measurement_date || new Date().toISOString().split('T')[0]}">
+            </div>
+        </div>
+
+        <div class="obj-actions">
+            <button class="btn btn-secondary" id="btnSkipObjective" type="button">
+                Lewati (Hanya Kuesioner)
+            </button>
+            <button class="btn btn-primary" id="btnSaveObjective" type="button">
+                Simpan & Lihat Hasil →
+            </button>
+        </div>
+    `;
+
+    showPage('objective');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    $('btnSkipObjective').addEventListener('click', function () {
+        state.objectiveData = null;
+        showResultFinal();
+    });
+
+    $('btnSaveObjective').addEventListener('click', function () {
+        state.objectiveData = {
+            obj_systolic_bp: $('objSystolic').value ? parseInt($('objSystolic').value) : null,
+            obj_diastolic_bp: $('objDiastolic').value ? parseInt($('objDiastolic').value) : null,
+            obj_urine_protein: $('objProtein').value,
+            obj_urine_glucose: $('objGlucose').value,
+            obj_blood_glucose: $('objGlucoseBlood').value ? parseInt($('objGlucoseBlood').value) : null,
+            obj_cholesterol: $('objCholesterol').value ? parseInt($('objCholesterol').value) : null,
+            obj_hemoglobin: $('objHemoglobin').value ? parseFloat($('objHemoglobin').value) : null,
+            obj_measurement_date: $('objDate').value || null
+        };
+        showResultFinal();
+    });
+}
+
+// ===== TAMPILKAN HASIL FINAL (Subjektif + Objektif) =====
+async function showResultFinal() {
+    const skorSubjektif = hitungSkor();
+    const gender = currentUser ? currentUser.jenisKelamin : '';
+    const skorObjektif = state.objectiveData ? hitungSkorObjektif(state.objectiveData, gender) : 0;
+    const skorTotal = skorSubjektif + skorObjektif;
+    const status = tentukanStatus(skorTotal);
     const tipsList = TIPS[status.key] || TIPS.sehat;
 
-    // Simpan ke Supabase
-    await saveScreeningResult({
+    const saved = await saveScreeningResult({
         answers: state.answers,
-        totalScore: skor,
+        objectiveData: state.objectiveData,
+        totalScore: skorTotal,
+        skorSubjektif: skorSubjektif,
+        skorObjektif: skorObjektif,
         status: status.key,
         statusLabel: status.label,
         statusIcon: status.icon
     });
 
-    // Hapus partial questionnaire
     clearPartialQuestionnaire();
 
-    // Bangun HTML tips
+    const deskripsi = (saved && saved.hasil && saved.hasil.deskripsi)
+        ? saved.hasil.deskripsi : 'Tidak ada deskripsi tersedia.';
+
     let tipsHtml = '';
-    tipsList.forEach((tip) => {
-        tipsHtml += `<li>${tip}</li>`;
-    });
+    tipsList.forEach((tip) => { tipsHtml += `<li>${tip}</li>`; });
 
     resultPage.innerHTML = `
         <div class="result-status-icon">${status.icon}</div>
         <div class="result-status-badge ${status.color}">${status.label}</div>
-        <div class="result-score">
-            Skor Anda: <strong>${skor}</strong> dari maksimal 20
+        <div class="result-breakdown">
+            <div class="result-score-item">
+                <span class="score-label">Subjektif</span>
+                <span class="score-value">${skorSubjektif} / 20</span>
+            </div>
+            <div class="result-score-item">
+                <span class="score-label">Objektif</span>
+                <span class="score-value">${skorObjektif} / 15</span>
+            </div>
+            <div class="result-score-item total">
+                <span class="score-label">Total</span>
+                <span class="score-value">${skorTotal} / 35</span>
+            </div>
         </div>
+        <div class="result-deskripsi">${deskripsi}</div>
         <div class="result-tips">
             <h3>💙 Kiat untuk Anda:</h3>
             <ul>${tipsHtml}</ul>
@@ -601,18 +724,31 @@ async function showResult() {
 // ===== MENAMPILKAN HASIL DARI DATA TERSIMPAN =====
 function showResultFromData(screening) {
     const tipsList = TIPS[screening.status] || TIPS.sehat;
-
     let tipsHtml = '';
-    tipsList.forEach(function (tip) {
-        tipsHtml += '<li>' + tip + '</li>';
-    });
+    tipsList.forEach(function (tip) { tipsHtml += '<li>' + tip + '</li>'; });
+    const deskripsi = screening.deskripsi || 'Tidak ada deskripsi tersedia.';
+    const skorSub = screening.skorSubjektif || 0;
+    const skorObj = screening.skorObjektif || 0;
+    const skorTotal = screening.totalScore || (skorSub + skorObj);
 
     resultPage.innerHTML = `
         <div class="result-status-icon">${screening.statusIcon}</div>
         <div class="result-status-badge ${screening.status}">${screening.statusLabel}</div>
-        <div class="result-score">
-            Skor Anda: <strong>${screening.totalScore}</strong> dari maksimal 20
+        <div class="result-breakdown">
+            <div class="result-score-item">
+                <span class="score-label">Subjektif</span>
+                <span class="score-value">${skorSub} / 20</span>
+            </div>
+            <div class="result-score-item">
+                <span class="score-label">Objektif</span>
+                <span class="score-value">${skorObj} / 15</span>
+            </div>
+            <div class="result-score-item total">
+                <span class="score-label">Total</span>
+                <span class="score-value">${skorTotal} / 35</span>
+            </div>
         </div>
+        <div class="result-deskripsi">${deskripsi}</div>
         <div class="result-tips">
             <h3>💙 Kiat untuk Anda:</h3>
             <ul>${tipsHtml}</ul>
@@ -622,7 +758,6 @@ function showResultFromData(screening) {
             Tetap konsultasikan kondisi Anda ke tenaga kesehatan profesional.
         </p>
     `;
-
     showPage('result');
 }
 
@@ -631,6 +766,7 @@ function restartApp() {
     // Reset state
     state.currentQuestion = 0;
     state.answers = {};
+    state.objectiveData = null;
 
     // Reset progress
     progressFill.style.width = '0%';

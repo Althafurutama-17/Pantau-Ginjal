@@ -96,6 +96,18 @@
     color: #1a1a2e;
 }
 
+.health-deskripsi {
+    font-size: 0.9rem;
+    color: #4a5568;
+    background: #f7fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    line-height: 1.5;
+    text-align: left;
+}
+
 .health-empty-text {
     font-size: 1rem;
     color: #6c757d;
@@ -1105,4 +1117,36 @@
     .form-input {
         font-size: 16px; /* Prevent iOS zoom */
     }
+}
+
+/* ===== DATA OBJEKTIF (Dashboard) ===== */
+.health-obj-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.health-obj-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+}
+
+.health-obj-item .label {
+    font-size: 0.75rem;
+    color: #718096;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.health-obj-item .value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1a1a2e;
 }

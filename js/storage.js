@@ -17,12 +17,25 @@ const SUBJECTIVE_KEYS = [
     'subj_skin_change', 'subj_sleep_disturbance'
 ];
 
+const OBJECTIVE_KEYS = [
+    'obj_systolic_bp', 'obj_diastolic_bp', 'obj_urine_protein', 'obj_urine_glucose',
+    'obj_blood_glucose', 'obj_cholesterol', 'obj_hemoglobin', 'obj_measurement_date'
+];
+
+const ALL_SELECT_COLUMNS = [...SUBJECTIVE_KEYS, ...OBJECTIVE_KEYS, 'id', 'user_id', 'screening_date', 'hasil'].join(', ');
+
 /**
  * Map answers object → kolom Supabase.
  */
 function mapAnswersToSupabase(answers) {
     const data = {};
     SUBJECTIVE_KEYS.forEach(key => { data[key] = answers[key] || 0; });
+    return data;
+}
+
+function mapObjectiveToSupabase(objData) {
+    const data = {};
+    OBJECTIVE_KEYS.forEach(key => { data[key] = objData[key] || null; });
     return data;
 }
 
@@ -33,6 +46,12 @@ function mapSupabaseToAnswers(row) {
     const answers = {};
     SUBJECTIVE_KEYS.forEach(key => { answers[key] = row[key] || 0; });
     return answers;
+}
+
+function mapSupabaseToObjective(row) {
+    const obj = {};
+    OBJECTIVE_KEYS.forEach(key => { obj[key] = row[key] || null; });
+    return obj;
 }
 
 /**
@@ -89,14 +108,48 @@ function mapAnswersToDisplay(answers) {
 // ===== FUNGSI UTAMA — SUPABASE =====
 
 /**
- * Menyimpan hasil skrining baru ke Supabase.
- * @param {Object} result - Data hasil skrining
- * @param {Object} result.answers - Objek jawaban { 'subj_foamy_urine': 0, ... }
- * @param {number} result.totalScore - Skor total (0-20)
- * @param {string} result.status - Key status
- * @param {string} result.statusLabel - Label status
- * @param {string} result.statusIcon - Icon status
- * @returns {Object|null} Data yang tersimpan atau null jika gagal
+ * Generate object hasil berdasarkan skor.
+ * Disimpan sebagai TEXT (JSON.stringify) di kolom 'hasil' Supabase.
+ */
+function generateHasil(skor, skorSubjektif, skorObjektif) {
+    let status, statusLabel, statusIcon, level, deskripsi;
+
+    if (skor <= 8) {
+        status = 'sehat'; statusLabel = 'Sehat'; statusIcon = '✅'; level = 1;
+        deskripsi = 'Kondisi kesehatan ginjal Anda tampak normal. Pertahankan pola hidup sehat!';
+    } else if (skor <= 16) {
+        status = 'waspada'; statusLabel = 'Waspada'; statusIcon = '⚠️'; level = 2;
+        deskripsi = 'Terdapat beberapa indikator yang perlu diperhatikan. Periksakan diri ke dokter dalam 2 minggu.';
+    } else if (skor <= 24) {
+        status = 'risiko_tinggi'; statusLabel = 'Risiko Tinggi'; statusIcon = '🔴'; level = 3;
+        deskripsi = 'Kombinasi gejala subjektif dan data objektif menunjukkan risiko tinggi. Segera konsultasi ke dokter spesialis ginjal.';
+    } else {
+        status = 'gawat_darurat'; statusLabel = 'Gawat Darurat'; statusIcon = '🚨'; level = 4;
+        deskripsi = 'Kondisi ini memerlukan penanganan medis segera. Segera pergi ke IGD atau fasilitas kesehatan terdekat!';
+    }
+
+    return { skor, skorSubjektif: skorSubjektif || 0, skorObjektif: skorObjektif || 0, status, statusLabel, statusIcon, level, deskripsi };
+}
+
+/**
+ * Parse kolom 'hasil' dari Supabase (bisa berupa string atau object).
+ */
+function parseHasil(hasil) {
+    if (!hasil) return null;
+    if (typeof hasil === 'object') return hasil;
+    try {
+        return JSON.parse(hasil);
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * Menyimpan hasil skrining ke Supabase (UPSERT).
+ * Kolom yang digunakan sesuai schema aktual:
+ *   id, user_id, screening_date, hasil, subj_*
+ * @param {Object} result
+ * @returns {Object|null}
  */
 async function saveScreeningResult(result) {
     if (typeof currentUser === 'undefined' || !currentUser || !currentUser.id) {
@@ -106,19 +159,42 @@ async function saveScreeningResult(result) {
 
     try {
         const subjData = mapAnswersToSupabase(result.answers);
+        const objData = result.objectiveData ? mapObjectiveToSupabase(result.objectiveData) : {};
+        const hasilObj = generateHasil(result.totalScore, result.skorSubjektif, result.skorObjektif);
+        const hasilText = JSON.stringify(hasilObj);
+        const now = new Date().toISOString();
 
-        const { data, error } = await supabaseClient
+        // Cek apakah user sudah punya data screening
+        const { data: existing } = await supabaseClient
             .from('screening_data')
-            .insert({
-                user_id: currentUser.id,
-                ...subjData,
-                objective_gfr: Math.max(15, 120 - (result.totalScore * 6)),
-                objective_dipstick: { answers_snapshot: result.answers },
-                screening_date: new Date().toISOString(),
-                notes: 'Skor: ' + result.totalScore + '/20 - ' + result.statusLabel
-            })
-            .select()
-            .single();
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .limit(1)
+            .maybeSingle();
+
+        let data, error;
+        const saveData = { ...subjData, ...objData, hasil: hasilText, screening_date: now };
+
+        if (existing) {
+            // UPDATE — ganti data lama dengan data baru
+            const res = await supabaseClient
+                .from('screening_data')
+                .update(saveData)
+                .eq('id', existing.id)
+                .select()
+                .single();
+            data = res.data;
+            error = res.error;
+        } else {
+            // INSERT — buat baris baru
+            const res = await supabaseClient
+                .from('screening_data')
+                .insert({ user_id: currentUser.id, ...saveData })
+                .select()
+                .single();
+            data = res.data;
+            error = res.error;
+        }
 
         if (error) {
             console.warn('Gagal simpan ke Supabase:', error);
@@ -128,8 +204,8 @@ async function saveScreeningResult(result) {
         return {
             id: data.id,
             ...result,
-            screeningDate: data.screening_date,
-            createdAt: data.created_at
+            hasil: hasilObj,
+            screeningDate: data.screening_date
         };
     } catch (e) {
         console.warn('Error simpan ke Supabase:', e);
@@ -139,6 +215,7 @@ async function saveScreeningResult(result) {
 
 /**
  * Mengambil semua data skrining dari Supabase.
+ * Kolom aktual: id, user_id, screening_date, hasil, subj_*
  * @returns {Promise<Array>}
  */
 async function getAllScreenings() {
@@ -147,7 +224,7 @@ async function getAllScreenings() {
     try {
         const { data, error } = await supabaseClient
             .from('screening_data')
-            .select('*')
+            .select(ALL_SELECT_COLUMNS)
             .eq('user_id', currentUser.id)
             .order('screening_date', { ascending: false });
 
@@ -155,13 +232,34 @@ async function getAllScreenings() {
 
         return (data || []).map(row => {
             const answers = mapSupabaseToAnswers(row);
+            const objData = mapSupabaseToObjective(row);
+            const hasilParsed = parseHasil(row.hasil);
+
+            if (hasilParsed) {
+                return {
+                    id: row.id,
+                    answers,
+                    objectiveData: objData,
+                    totalScore: hasilParsed.skor,
+                    skorSubjektif: hasilParsed.skorSubjektif,
+                    skorObjektif: hasilParsed.skorObjektif,
+                    status: hasilParsed.status,
+                    statusLabel: hasilParsed.statusLabel,
+                    statusIcon: hasilParsed.statusIcon,
+                    level: hasilParsed.level,
+                    deskripsi: hasilParsed.deskripsi,
+                    screeningDate: row.screening_date
+                };
+            }
+
+            // Fallback: hitung dari subj_* kolom
             const score = hitungSkorFromAnswers(answers);
             return {
-                id: row.id, answers, totalScore: score,
+                id: row.id, answers, objectiveData: objData, totalScore: score,
                 status: tentukanStatusKey(score),
                 statusLabel: tentukanStatusLabel(score),
                 statusIcon: tentukanStatusIcon(score),
-                screeningDate: row.screening_date, createdAt: row.created_at
+                screeningDate: row.screening_date
             };
         });
     } catch (e) { console.warn('Error:', e); return []; }
@@ -169,6 +267,7 @@ async function getAllScreenings() {
 
 /**
  * Mengambil hasil skrining terakhir dari Supabase.
+ * Kolom aktual: id, user_id, screening_date, hasil, subj_*
  * @returns {Promise<Object|null>}
  */
 async function getLatestScreening() {
@@ -177,7 +276,7 @@ async function getLatestScreening() {
     try {
         const { data, error } = await supabaseClient
             .from('screening_data')
-            .select('*')
+            .select(ALL_SELECT_COLUMNS)
             .eq('user_id', currentUser.id)
             .order('screening_date', { ascending: false })
             .limit(1)
@@ -186,13 +285,34 @@ async function getLatestScreening() {
         if (error || !data) return null;
 
         const answers = mapSupabaseToAnswers(data);
+        const objData = mapSupabaseToObjective(data);
+        const hasilParsed = parseHasil(data.hasil);
+
+        if (hasilParsed) {
+            return {
+                id: data.id,
+                answers,
+                objectiveData: objData,
+                totalScore: hasilParsed.skor,
+                skorSubjektif: hasilParsed.skorSubjektif,
+                skorObjektif: hasilParsed.skorObjektif,
+                status: hasilParsed.status,
+                statusLabel: hasilParsed.statusLabel,
+                statusIcon: hasilParsed.statusIcon,
+                level: hasilParsed.level,
+                deskripsi: hasilParsed.deskripsi,
+                screeningDate: data.screening_date
+            };
+        }
+
+        // Fallback: hitung dari subj_* kolom
         const score = hitungSkorFromAnswers(answers);
         return {
-            id: data.id, answers, totalScore: score,
+            id: data.id, answers, objectiveData: objData, totalScore: score,
             status: tentukanStatusKey(score),
             statusLabel: tentukanStatusLabel(score),
             statusIcon: tentukanStatusIcon(score),
-            screeningDate: data.screening_date, createdAt: data.created_at
+            screeningDate: data.screening_date
         };
     } catch (e) { return null; }
 }

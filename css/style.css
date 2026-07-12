@@ -636,7 +636,19 @@ body:has(#page-landing.active) header {
 .result-score {
     font-size: 1.1rem;
     color: #2d3748;
+    margin-bottom: 16px;
+}
+
+.result-deskripsi {
+    font-size: 0.95rem;
+    color: #4a5568;
+    background: #f7fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
     margin-bottom: 20px;
+    line-height: 1.6;
+    text-align: left;
 }
 
 .result-tips {
@@ -1006,4 +1018,112 @@ body:has(#page-landing.active) header {
 
 .text-center {
     text-align: center;
+}
+
+/* ===== FORM DATA OBJEKTIF ===== */
+.objective-container {
+    padding: 0 4px;
+}
+
+.objective-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.objective-header h2 {
+    font-size: 1.2rem;
+    color: #0a5c8a;
+    margin-bottom: 4px;
+}
+
+.objective-header p {
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+.obj-section {
+    background: #f7fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.obj-section-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+}
+
+.obj-row {
+    display: flex;
+    gap: 12px;
+}
+
+.obj-field {
+    flex: 1;
+    margin-bottom: 8px;
+}
+
+.obj-field label {
+    display: block;
+    font-size: 0.85rem;
+    color: #4a5568;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.obj-normal {
+    font-size: 0.8rem;
+    color: #718096;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+.obj-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.obj-actions .btn {
+    flex: 1;
+}
+
+/* ===== HASIL BREAKDOWN ===== */
+.result-breakdown {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.result-score-item {
+    text-align: center;
+    background: #f7fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 20px;
+    min-width: 100px;
+}
+
+.result-score-item.total {
+    background: #e1eff9;
+    border-color: #1a7fc4;
+}
+
+.score-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #718096;
+    margin-bottom: 4px;
+}
+
+.score-value {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1a2e;
 }

@@ -135,6 +135,7 @@ const DashboardManager = {
         const latestScreening = await getLatestScreening();
         this.renderHealthStatus(latestScreening);
         this.renderQuestionnaireAccess(latestScreening);
+        this.renderObjectiveAccess(latestScreening);
         this.renderTipsPreview();
     },
 
@@ -170,11 +171,13 @@ const DashboardManager = {
         } else {
             // Sudah pernah skrining
             const statusClass = 'status-' + screening.status;
+            const deskripsi = screening.deskripsi || '';
             container.innerHTML = `
                 <div class="health-status">
                     <div class="health-status-icon">${screening.statusIcon}</div>
                     <span class="health-badge ${statusClass}" role="status">${screening.statusIcon} ${screening.statusLabel}</span>
-                    <p class="health-info">Skor: <strong>${screening.totalScore}</strong> dari 20</p>
+                    <p class="health-info">Skor: <strong>${screening.totalScore}</strong> dari 35</p>
+                    ${deskripsi ? '<p class="health-deskripsi">' + deskripsi + '</p>' : ''}
                     <p class="health-info">Terakhir skrining: <strong>${formatDateIndonesia(screening.screeningDate)}</strong></p>
                     <div class="health-actions">
                         <button class="btn btn-secondary" id="dashboard-btn-detail" type="button">
@@ -204,9 +207,9 @@ const DashboardManager = {
         const partial = getPartialQuestionnaire();
         let statusHtml = '';
 
-        if (partial && partial.answers && partial.answers.some(function (a) { return a !== null; })) {
+        if (partial && partial.answers && Object.keys(partial.answers).length > 0) {
             // Ada kuesioner yang sedang berjalan
-            const answeredCount = partial.answers.filter(function (a) { return a !== null; }).length;
+            const answeredCount = Object.keys(partial.answers).length;
             const progressPct = Math.round((answeredCount / 10) * 100);
             statusHtml = `
                 <div class="qa-status">
@@ -264,6 +267,67 @@ const DashboardManager = {
 
         const btnResume = document.getElementById('dashboard-btn-resume');
         if (btnResume) btnResume.addEventListener('click', function () { window.resumeQuestionnaire && window.resumeQuestionnaire(); });
+    },
+
+    /**
+     * Merender kartu Akses Data Objektif.
+     * @param {Object|null} screening - Data screening terakhir atau null
+     */
+    renderObjectiveAccess: function (screening) {
+        const container = document.getElementById('dashboard-objective-access');
+        if (!container) return;
+
+        const hasObjData = screening && screening.objectiveData && (
+            screening.objectiveData.obj_systolic_bp ||
+            screening.objectiveData.obj_blood_glucose ||
+            screening.objectiveData.obj_cholesterol ||
+            screening.objectiveData.obj_hemoglobin
+        );
+
+        let objHtml = '';
+
+        if (hasObjData) {
+            const od = screening.objectiveData;
+            objHtml = `
+                <div class="qa-status">
+                    <p class="qa-status-text">Data pemeriksaan sudah terisi:</p>
+                    <div class="health-obj-grid">
+                        ${od.obj_systolic_bp ? '<div class="health-obj-item"><span class="label">TD</span><span class="value">' + od.obj_systolic_bp + '/' + (od.obj_diastolic_bp || '-') + ' mmHg</span></div>' : ''}
+                        ${od.obj_blood_glucose ? '<div class="health-obj-item"><span class="label">Gula Darah</span><span class="value">' + od.obj_blood_glucose + ' mg/dL</span></div>' : ''}
+                        ${od.obj_cholesterol ? '<div class="health-obj-item"><span class="label">Kolesterol</span><span class="value">' + od.obj_cholesterol + ' mg/dL</span></div>' : ''}
+                        ${od.obj_hemoglobin ? '<div class="health-obj-item"><span class="label">Hemoglobin</span><span class="value">' + od.obj_hemoglobin + ' g/dL</span></div>' : ''}
+                        ${od.obj_urine_protein ? '<div class="health-obj-item"><span class="label">Protein Urine</span><span class="value">' + od.obj_urine_protein + '</span></div>' : ''}
+                        ${od.obj_urine_glucose ? '<div class="health-obj-item"><span class="label">Glukosa Urine</span><span class="value">' + od.obj_urine_glucose + '</span></div>' : ''}
+                    </div>
+                    <button class="btn btn-primary" id="dashboard-btn-obj-edit" type="button" style="margin-top:12px;">
+                        <i class="fa-solid fa-pen"></i> Perbarui Data Objektif
+                    </button>
+                </div>
+            `;
+        } else {
+            objHtml = `
+                <div class="qa-status">
+                    <p class="qa-status-text">
+                        Status: <span class="status-empty">Belum diisi</span>
+                    </p>
+                    <p style="font-size:0.85rem;color:#718096;margin-bottom:12px;">
+                        Masukkan hasil pemeriksaan dari Puskesmas/Klinik (Tekanan Darah, Gula Darah, Kolesterol, dsb)
+                    </p>
+                    <button class="btn btn-primary" id="dashboard-btn-obj-add" type="button">
+                        <i class="fa-solid fa-flask"></i> Isi Data Objektif →
+                    </button>
+                </div>
+            `;
+        }
+
+        container.innerHTML = objHtml;
+
+        // Event listeners
+        const btnObjAdd = document.getElementById('dashboard-btn-obj-add');
+        if (btnObjAdd) btnObjAdd.addEventListener('click', function () { window.renderObjectiveForm && window.renderObjectiveForm(); });
+
+        const btnObjEdit = document.getElementById('dashboard-btn-obj-edit');
+        if (btnObjEdit) btnObjEdit.addEventListener('click', function () { window.renderObjectiveForm && window.renderObjectiveForm(); });
     },
 
     /**
@@ -450,10 +514,6 @@ const DashboardManager = {
                     <div class="profile-detail-item">
                         <span class="label">Username</span>
                         <span class="value">${username}</span>
-                    </div>
-                    <div class="profile-detail-item">
-                        <span class="label">Email</span>
-                        <span class="value">${email}</span>
                     </div>
                     <div class="profile-detail-item">
                         <span class="label">Nama Lengkap</span>
