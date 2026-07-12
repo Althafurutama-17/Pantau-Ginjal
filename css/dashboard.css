@@ -434,14 +434,44 @@
     }
 }
 
-/* ===== HALAMAN LOGIN ===== */
-#page-login {
-    display: none;
-    animation: fadeIn 0.3s ease;
+/* ===== HALAMAN LOGIN & REGISTER ===== */
+#page-login, #page-register {
+    background: linear-gradient(180deg, #f0f8ff 0%, #e8f4fd 100%);
+    min-height: 70vh;
+    border-radius: 24px;
+    padding: 0 24px 24px 24px;
+    margin-top: 0;
+    overflow: visible;
 }
 
-#page-login.active {
-    display: block;
+/* ===== AUTH HEADER (Login & Register) ===== */
+.auth-header {
+    background: linear-gradient(135deg, #0a5c8a 0%, #1a7fc4 50%, #2a9df4 100%);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 32px 20px 28px;
+    margin: 0 -24px 0 -24px;
+    border-radius: 24px 24px 0 0;
+}
+
+.auth-header-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: contain;
+    padding: 4px;
+    background-color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    flex-shrink: 0;
+}
+
+.auth-header-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .login-container {
@@ -597,6 +627,18 @@
         width: 100%;
         min-width: unset;
     }
+    .auth-header {
+        padding: 18px 14px;
+        gap: 10px;
+    }
+    .auth-header-logo {
+        width: 44px;
+        height: 44px;
+        padding: 3px;
+    }
+    .auth-header-name {
+        font-size: 1.1rem;
+    }
     .profile-avatar {
         width: 64px;
         height: 64px;
@@ -607,6 +649,21 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 4px;
+    }
+}
+
+@media (max-width: 400px) {
+    .auth-header {
+        padding: 16px 12px;
+        gap: 10px;
+    }
+    .auth-header-logo {
+        width: 42px;
+        height: 42px;
+        padding: 3px;
+    }
+    .auth-header-name {
+        font-size: 1rem;
     }
 }
 

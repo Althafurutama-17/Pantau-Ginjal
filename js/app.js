@@ -174,15 +174,18 @@ const logoutModalOverlay = $('logoutModalOverlay');
 const btnLogoutCancel = $('btnLogoutCancel');
 const btnLogoutConfirm = $('btnLogoutConfirm');
 const registerPage = $('page-register');
+const landingPage = $('page-landing');
 const notifModalOverlay = $('notifModalOverlay');
 const notifModalIcon = $('notifModalIcon');
 const notifModalTitle = $('notifModalTitle');
 const notifModalText = $('notifModalText');
 const btnNotifClose = $('btnNotifClose');
+const appHeader = document.querySelector('header');
 
 // ===== FUNGSI NAVIGASI HALAMAN =====
 function showPage(pageName) {
     // Sembunyikan semua halaman
+    landingPage.classList.remove('active');
     loginPage.classList.remove('active');
     registerPage.classList.remove('active');
     homePage.classList.remove('active');
@@ -197,7 +200,19 @@ function showPage(pageName) {
     const showBottomNav = ['dashboard', 'profile', 'tips', 'riwayat'].includes(pageName);
     bottomNav.classList.toggle('visible', showBottomNav);
 
-    if (pageName === 'login') {
+    // Sembunyikan header di halaman landing & login & register
+    const hideHeader = ['landing', 'login', 'register'].includes(pageName);
+    appHeader.style.display = hideHeader ? 'none' : '';
+
+    // Full-screen landing page
+    const isLanding = pageName === 'landing';
+    document.body.classList.toggle('landing-active', isLanding);
+    document.querySelector('.app-container').classList.toggle('landing-fullscreen', isLanding);
+
+    if (pageName === 'landing') {
+        landingPage.classList.add('active');
+        progressSection.classList.remove('visible');
+    } else if (pageName === 'login') {
         loginPage.classList.add('active');
         progressSection.classList.remove('visible');
     } else if (pageName === 'register') {
@@ -813,7 +828,7 @@ async function register() {
         btnRegister.disabled = false;
 
         // Pindah ke halaman login
-        setTimeout(() => showPage('login'), 1500);
+        setTimeout(() => showPage('landing'), 1500);
     } catch (e) {
         console.error('Register error:', e);
         showNotif('error', 'Kesalahan', 'Terjadi kesalahan saat registrasi. Periksa koneksi internet Anda.');
@@ -863,8 +878,8 @@ btnLogoutConfirm.addEventListener('click', async function () {
     progressBarEl.setAttribute('aria-valuenow', 0);
     resultPage.innerHTML = '';
 
-    // Kembali ke halaman login
-    showPage('login');
+    // Kembali ke halaman landing
+    showPage('landing');
 });
 
 // Expose fungsi ke global
@@ -873,8 +888,23 @@ window.logout = logout;
 
 // ===== INISIALISASI APLIKASI =====
 document.addEventListener('DOMContentLoaded', function () {
-    // Tampilkan halaman login dulu
-    showPage('login');
+    // Tampilkan halaman landing dulu
+    showPage('landing');
+
+    // Event listener tombol landing
+    var btnLandingLogin = document.getElementById('btnLandingLogin');
+    if (btnLandingLogin) {
+        btnLandingLogin.addEventListener('click', function () {
+            showPage('login');
+        });
+    }
+
+    var btnLandingRegister = document.getElementById('btnLandingRegister');
+    if (btnLandingRegister) {
+        btnLandingRegister.addEventListener('click', function () {
+            showPage('register');
+        });
+    }
 
     // Event listener tombol login
     var btnLogin = document.getElementById('btnLogin');

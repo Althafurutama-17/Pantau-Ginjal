@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Skrining Kesehatan Ginjal</title>
     <!-- CSS external: tampilan & gaya aplikasi -->
     <link rel="stylesheet" href="css/style.css">
@@ -17,7 +17,7 @@
 <div class="app-container" role="application" aria-label="Aplikasi Skrining Kesehatan Ginjal">
     <!-- ===== HEADER ===== -->
     <header>
-        <span class="logo-icon" aria-hidden="true"><i class="fa-solid fa-stethoscope"></i></span>
+        <span class="logo-icon" aria-hidden="true"><img src="Logo 2.jpeg" alt="Logo Pantau Ginjal" class="logo-img"></span>
         <h1>Skrining Kesehatan Ginjal</h1>
         <p>Deteksi Dini untuk Hidup yang Lebih Sehat</p>
     </header>
@@ -37,8 +37,27 @@
 
     <!-- ===== KONTEN UTAMA ===== -->
     <main id="mainContent">
+        <!-- ===== HALAMAN LANDING (AWALAN) ===== -->
+        <section id="page-landing" class="page active" aria-label="Landing">
+            <div class="landing-container">
+                <div class="landing-logo-circle">
+                    <img src="Logo 2.jpeg" alt="Logo Pantau Ginjal" class="landing-logo-img">
+                </div>
+                <h2 class="landing-title">Pantau Ginjal</h2>
+                <p class="landing-subtitle">Pantau hari ini, jaga ginjal selamanya</p>
+                <div class="landing-actions">
+                    <button class="btn btn-primary btn-landing" id="btnLandingLogin" type="button">
+                        <i class="fa-solid fa-right-to-bracket"></i> Sudah Punya Akun
+                    </button>
+                    <button class="btn btn-secondary btn-landing" id="btnLandingRegister" type="button">
+                        <i class="fa-solid fa-user-plus"></i> Daftar Akun Baru
+                    </button>
+                </div>
+            </div>
+        </section>
+
         <!-- ===== HALAMAN BERANDA ===== -->
-        <section id="page-home" class="page active" aria-label="Beranda">
+        <section id="page-home" class="page" aria-label="Beranda">
             <div class="hero-icon" aria-hidden="true"><i class="fa-solid fa-hospital"></i></div>
             <h2>Selamat Datang</h2>
             <p class="description">
@@ -59,13 +78,14 @@
 
         <!-- ===== HALAMAN LOGIN ===== -->
         <section id="page-login" class="page" aria-label="Login">
+            <div class="auth-header">
+                <img src="Logo 2.jpeg" alt="Logo" class="auth-header-logo">
+                <span class="auth-header-name">Pantau Ginjal</span>
+            </div>
             <div class="login-container">
                 <div class="login-card">
-                    <div class="login-icon" aria-hidden="true"><i class="fa-solid fa-stethoscope"></i></div>
-                    <h2>Skrining Kesehatan Ginjal</h2>
-                    <p class="login-subtitle">Deteksi Dini untuk Hidup yang Lebih Sehat</p>
-                    <div class="login-divider"></div>
                     <p class="login-welcome">Silakan masuk untuk melanjutkan</p>
+                    <div class="login-divider"></div>
                     <div class="login-form">
                         <div class="form-group">
                             <label for="loginUsername"><i class="fa-solid fa-user"></i> Username</label>
@@ -96,9 +116,12 @@
 
         <!-- ===== HALAMAN DAFTAR ===== -->
         <section id="page-register" class="page" aria-label="Daftar">
+            <div class="auth-header">
+                <img src="Logo 2.jpeg" alt="Logo" class="auth-header-logo">
+                <span class="auth-header-name">Pantau Ginjal</span>
+            </div>
             <div class="login-container">
                 <div class="login-card register-card">
-                    <div class="login-icon" aria-hidden="true"><i class="fa-solid fa-user-plus"></i></div>
                     <h2>Daftar Akun Baru</h2>
                     <p class="login-subtitle">Buat akun untuk mulai skrining kesehatan ginjal</p>
                     <div class="login-divider"></div>

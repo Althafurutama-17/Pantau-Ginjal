@@ -39,6 +39,35 @@ body {
     position: relative;
 }
 
+body:has(#page-landing.active) {
+    background: linear-gradient(135deg, #0a5c8a 0%, #1a7fc4 50%, #2a9df4 100%);
+    min-height: 100vh;
+}
+
+body:has(#page-landing.active) .app-container {
+    box-shadow: none;
+    border-radius: 0;
+    max-width: 100%;
+    min-height: 100vh;
+}
+
+/* Fallback for browsers without :has() support */
+body.landing-active {
+    background: linear-gradient(135deg, #0a5c8a 0%, #1a7fc4 50%, #2a9df4 100%) !important;
+    padding: 0 !important;
+}
+
+body.landing-active .app-container {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+    min-height: 100vh !important;
+}
+
+body.landing-active .app-container.landing-fullscreen {
+    padding: 0;
+}
+
 /* ===== DESKTOP LAYOUT ===== */
 @media (min-width: 1024px) {
     .app-container {
@@ -200,14 +229,19 @@ header {
 }
 
 header .logo-icon {
-    font-size: 2.4rem;
-    display: block;
+    display: flex;
+    justify-content: center;
     margin-bottom: 6px;
-    color: #ffffff;
 }
 
-header .logo-icon i {
-    font-size: 2.4rem;
+header .logo-icon .logo-img {
+    height: 72px;
+    width: 72px;
+    object-fit: contain;
+    padding: 6px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.6);
 }
 
 header h1 {
@@ -285,6 +319,105 @@ main {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== HALAMAN LANDING (AWALAN) ===== */
+#page-landing {
+    text-align: center;
+    padding: 40px 24px;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0a5c8a 0%, #1a7fc4 50%, #2a9df4 100%);
+    border-radius: 0;
+    margin: -8px -32px -24px -32px;
+    color: #ffffff;
+}
+
+#page-landing.active {
+    display: flex !important;
+}
+
+main {
+    padding: 0;
+    min-height: unset;
+}
+
+#page-landing.active ~ .landing-container header,
+body:has(#page-landing.active) header {
+    display: none;
+}
+
+/* ===== AUTH HEADER (Login & Register) — see dashboard.css ===== */
+
+.landing-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.landing-logo-circle {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 6px solid rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+}
+
+.landing-logo-img {
+    width: 190px;
+    height: 190px;
+    object-fit: contain;
+    padding: 10px;
+}
+
+.landing-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-top: 8px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.landing-subtitle {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 16px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.landing-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 300px;
+    margin-top: 16px;
+}
+
+.btn-landing {
+    width: 100%;
+    padding: 14px 24px;
+    font-size: 1rem;
+    border-radius: 12px;
+}
+
+.btn-landing.btn-secondary {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border: 2.5px solid rgba(255, 255, 255, 0.6);
+}
+
+.btn-landing.btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.35);
+    border-color: rgba(255, 255, 255, 0.8);
+    transform: translateY(-2px);
 }
 
 /* ===== HALAMAN BERANDA ===== */
@@ -745,7 +878,7 @@ main {
     body { padding: 20px; }
     .app-container { max-width: 720px; }
     header { padding: 28px 32px 24px; }
-    header .logo-icon { font-size: 2.2rem; }
+    header .logo-icon .logo-img { height: 65px; width: 65px; }
     header h1 { font-size: 1.4rem; }
     main { padding: 10px 28px 22px; }
     .btn { min-width: 150px; padding: 12px 30px; }
@@ -757,18 +890,21 @@ main {
     body { padding: 16px; }
     header { padding: 24px 24px 20px; }
     header h1 { font-size: 1.35rem; }
-    main { padding: 12px 24px 20px; }
     .progress-section { padding: 0 24px; }
     .nav-footer { padding: 14px 24px 24px; }
     .modal-content { padding: 24px; }
+    #page-landing { margin: -8px -24px -20px -24px; padding: 32px 20px; }
 }
 
 /* Mobile (≤ 600px) */
 @media (max-width: 600px) {
     body { padding: 10px; }
     header { padding: 20px 18px 16px; }
-    header .logo-icon { font-size: 2rem; }
-    header h1 { font-size: 1.2rem; }
+    #page-landing { margin: -8px -18px -18px -18px; padding: 24px 16px; min-height: 70vh; }
+    .landing-logo-circle { width: 180px; height: 180px; }
+    .landing-logo-img { width: 160px; height: 160px; }
+    .landing-title { font-size: 1.5rem; }
+    header .logo-icon .logo-img { height: 60px; width: 60px; }
     main { padding: 10px 18px 18px; }
     .progress-section { padding: 0 18px; }
     .nav-footer { padding: 10px 18px 22px; gap: 10px; }
@@ -789,7 +925,11 @@ main {
 @media (max-width: 400px) {
     body { padding: 6px; }
     header { padding: 16px 14px 12px; }
-    header .logo-icon { font-size: 1.8rem; }
+    #page-landing { margin: -8px -14px -16px -14px; padding: 20px 10px; min-height: 65vh; }
+    .landing-logo-circle { width: 150px; height: 150px; }
+    .landing-logo-img { width: 135px; height: 135px; }
+    .landing-title { font-size: 1.3rem; }
+    header .logo-icon .logo-img { height: 50px; width: 50px; }
     header h1 { font-size: 1.1rem; }
     main { padding: 8px 14px 16px; }
     .progress-section { padding: 0 14px; }
