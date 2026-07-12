@@ -177,7 +177,6 @@ const state = {
 const $ = (id) => document.getElementById(id);
 const loginPage      = $('page-login');
 const profilePage    = $('page-profile');
-const homePage       = $('page-home');
 const dashboardPage  = $('page-dashboard');
 const questionnairePage = $('page-questionnaire');
 const resultPage     = $('page-result');
@@ -215,7 +214,6 @@ function showPage(pageName) {
     landingPage.classList.remove('active');
     loginPage.classList.remove('active');
     registerPage.classList.remove('active');
-    homePage.classList.remove('active');
     dashboardPage.classList.remove('active');
     profilePage.classList.remove('active');
     questionnairePage.classList.remove('active');
@@ -294,7 +292,7 @@ function renderNavButtons() {
     if (page === 'login' || page === 'profile') {
         navFooter.innerHTML = '';
     } else if (page === 'dashboard') {
-        // Dashboard tidak perlu tombol footer — navigasi via tab
+        // Dashboard & Home tidak perlu tombol footer
         navFooter.innerHTML = '';
     } else if (page === 'questionnaire') {
         const isFirst = state.currentQuestion === 0;
@@ -333,21 +331,14 @@ function renderNavButtons() {
 function startQuestionnaire() {
     state.currentQuestion = 0;
     state.answers = {};
-    clearPartialQuestionnaire();
     showPage('questionnaire');
     renderQuestion();
 }
 
-// ===== MELANJUTKAN KUESIONER (dari partial save) =====
+// ===== MELANJUTKAN KUESIONER (mulai baru) =====
 async function resumeQuestionnaire() {
-    var partial = getPartialQuestionnaire();
-    if (partial && partial.answers) {
-        state.currentQuestion = partial.currentQuestion || 0;
-        state.answers = partial.answers;
-    } else {
-        state.currentQuestion = 0;
-        state.answers = {};
-    }
+    state.currentQuestion = 0;
+    state.answers = {};
     showPage('questionnaire');
     renderQuestion();
 }
@@ -449,12 +440,6 @@ function nextQuestion() {
     const currentCode = QUESTIONS[state.currentQuestion].code;
     // Pastikan jawaban sudah dipilih
     if (state.answers[currentCode] === undefined) return;
-
-    // Simpan progress parsial ke localStorage
-    savePartialQuestionnaire({
-        currentQuestion: state.currentQuestion,
-        answers: state.answers
-    });
 
     const isLast = state.currentQuestion === QUESTIONS.length - 1;
 
@@ -823,8 +808,28 @@ modalOverlay.addEventListener('keydown', function (e) {
 });
 
 // ===== FORM DATA OBJEKTIF =====
-function renderObjectiveForm() {
+async function renderObjectiveForm() {
     const gender = currentUser ? currentUser.jenisKelamin : '';
+
+    // Load data objektif dari Supabase jika state belum ada (untuk edit/update)
+    if (!state.objectiveData && currentUser && currentUser.id) {
+        try {
+            const { data: existing } = await supabaseClient
+                .from('screening_data')
+                .select('obj_systolic_bp, obj_diastolic_bp, obj_urine_protein, obj_urine_glucose, obj_blood_glucose, obj_cholesterol, obj_hemoglobin, obj_measurement_date')
+                .eq('user_id', currentUser.id)
+                .order('screening_date', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+            if (existing && (existing.obj_systolic_bp || existing.obj_blood_glucose || existing.obj_cholesterol || existing.obj_hemoglobin)) {
+                state.objectiveData = existing;
+                console.log('[renderObjectiveForm] Load data dari Supabase untuk edit');
+            }
+        } catch (e) {
+            console.warn('[renderObjectiveForm] Gagal load data:', e);
+        }
+    }
+
     const saved = state.objectiveData || {};
 
     objectiveContainer.innerHTML = `
@@ -910,10 +915,10 @@ function renderObjectiveForm() {
 
         <div class="obj-actions">
             <button class="btn btn-secondary" id="btnSkipObjective" type="button">
-                Lihat Hasil
+                <i class="fa-solid fa-house"></i> Beranda
             </button>
             <button class="btn btn-primary" id="btnSaveObjective" type="button">
-                Simpan Data Checkup & Lihat Hasil →
+                Simpan Data
             </button>
         </div>
     `;
@@ -921,10 +926,9 @@ function renderObjectiveForm() {
     showPage('objective');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Tombol 'Lihat Hasil' — langsung ke hasil tanpa simpan data baru
-    // (data objektif yang sudah ada di Supabase tetap dipertahankan)
+    // Tombol 'Beranda' — kembali ke dashboard tanpa simpan
     $('btnSkipObjective').addEventListener('click', function () {
-        showResultFinal();
+        showPage('dashboard');
     });
 
     $('btnSaveObjective').addEventListener('click', function () {
@@ -990,14 +994,10 @@ async function showResultFinal() {
 
     console.log('[showResultFinal] saved:', saved);
 
-    clearPartialQuestionnaire();
-
     const deskripsi = (saved && saved.hasil && saved.hasil.deskripsi)
         ? saved.hasil.deskripsi : 'Tidak ada deskripsi tersedia.';
 
     let tipsHtml = '';
-    tipsList.forEach((tip) => { tipsHtml += `<li>${tip}</li>`; });
-
     // Gunakan status dari hasil yang tersimpan (sumber kebenaran), fallback ke status lokal
     const finalStatus = (saved && saved.hasil) ? saved.hasil : status;
     const finalIcon = finalStatus.statusIcon || status.icon;
@@ -1337,9 +1337,7 @@ btnLogoutConfirm.addEventListener('click', async function () {
 
     // Hapus semua data local
     clearAllData();
-    clearPartialQuestionnaire();
 
-    // Reset state
     isLoggedIn = false;
     currentUser = null;
     state.currentQuestion = 0;

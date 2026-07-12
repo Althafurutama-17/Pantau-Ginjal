@@ -7,9 +7,6 @@
  * =========================================
  */
 
-// ===== KEY UNTUK PARTIAL QUESTIONNAIRE (tetap localStorage) =====
-const PARTIAL_KEY = 'ginjal_partial';
-
 // ===== HELPER: Map kolom subj_* ke/from objek answers =====
 const SUBJECTIVE_KEYS = [
     'subj_foamy_urine', 'subj_pruritus', 'subj_fatigue', 'subj_edema',
@@ -436,35 +433,4 @@ async function clearAllData() {
     } catch (e) { console.warn('Error:', e); }
 }
 
-// ===== PARTIAL QUESTIONNAIRE (tetap localStorage) =====
 
-/**
- * Menyimpan kuesioner yang sedang berjalan (partial) ke localStorage.
- * @param {Object} partial - { currentQuestion: number, answers: Object }
- */
-function savePartialQuestionnaire(partial) {
-    const data = {
-        currentQuestion: partial.currentQuestion,
-        answers: partial.answers,
-        savedAt: new Date().toISOString()
-    };
-    localStorage.setItem(PARTIAL_KEY, JSON.stringify(data));
-}
-
-/**
- * Mengambil kuesioner yang sedang berjalan dari localStorage.
- * @returns {Object|null}
- */
-function getPartialQuestionnaire() {
-    try {
-        const data = localStorage.getItem(PARTIAL_KEY);
-        return data ? JSON.parse(data) : null;
-    } catch (e) { return null; }
-}
-
-/**
- * Menghapus kuesioner yang sedang berjalan dari localStorage.
- */
-function clearPartialQuestionnaire() {
-    localStorage.removeItem(PARTIAL_KEY);
-}

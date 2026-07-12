@@ -300,33 +300,9 @@ const DashboardManager = {
         const container = document.getElementById('dashboard-questionnaire-access');
         if (!container) return;
 
-        const partial = getPartialQuestionnaire();
         let statusHtml = '';
 
-        if (partial && partial.answers && Object.keys(partial.answers).length > 0) {
-            // Ada kuesioner yang sedang berjalan
-            const answeredCount = Object.keys(partial.answers).length;
-            const progressPct = Math.round((answeredCount / 10) * 100);
-            statusHtml = `
-                <div class="qa-status">
-                    <p class="qa-status-text">
-                        Status: Sedang berjalan <strong>(${answeredCount}/10)</strong>
-                    </p>
-                    <div class="qa-progress-mini">
-                        <div class="progress-label">
-                            <span>Progress</span>
-                            <span>${progressPct}%</span>
-                        </div>
-                        <div class="progress-track">
-                            <div class="progress-fill" style="width:${progressPct}%"></div>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" id="dashboard-btn-resume" type="button">
-                        Lanjutkan Kuesioner →
-                    </button>
-                </div>
-            `;
-        } else if (screening) {
+        if (screening) {
             // Sudah pernah selesai
             statusHtml = `
                 <div class="qa-status">
@@ -360,9 +336,6 @@ const DashboardManager = {
 
         const btnUlang = document.getElementById('dashboard-btn-ulang');
         if (btnUlang) btnUlang.addEventListener('click', function () { window.startQuestionnaire && window.startQuestionnaire(); });
-
-        const btnResume = document.getElementById('dashboard-btn-resume');
-        if (btnResume) btnResume.addEventListener('click', function () { window.resumeQuestionnaire && window.resumeQuestionnaire(); });
     },
 
     /**
